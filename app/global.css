@@ -1,0 +1,393 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+/* ============================================================
+   LIGHT MODE (default) — pure white base, dark charcoal text
+   ============================================================ */
+:root {
+  --bg: #f8fafc;
+  --fg: #090d16;
+  --card: #ffffff;
+  --card-border: #e2e8f0;
+  --muted-bg: #f1f5f9;
+  --muted-fg: #64748b;
+  --input-bg: #ffffff;
+  --input-border: #e2e8f0;
+  --brand: #00DC6C;
+  --brand-neon: #00E575;
+  --brand-hover: #00C25E;
+}
+
+/* ============================================================
+   DARK MODE — sleek obsidian background, off-white text
+   ============================================================ */
+.dark {
+  --bg: #080b11;
+  --fg: #f3f4f6;
+  --card: #0d111a;
+  --card-border: rgba(255, 255, 255, 0.055);
+  --muted-bg: #121723;
+  --muted-fg: #94a3b8;
+  --input-bg: rgba(255, 255, 255, 0.025);
+  --input-border: rgba(255, 255, 255, 0.06);
+  --brand: #00E575;
+  --brand-neon: #00E575;
+  --brand-hover: #00C25E;
+}
+
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-color: var(--card-border);
+}
+
+.dark .border-border,
+.dark .border-page {
+  border-color: var(--card-border);
+}
+
+html {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ============================================================
+   SEMANTIC UTILITY CLASSES  (use these in components)
+   ============================================================ */
+
+/* Background */
+.bg-page       { background-color: var(--bg); }
+.bg-card       { background-color: var(--card); }
+.bg-muted      { background-color: var(--muted-bg); }
+
+/* Text */
+.text-page     { color: var(--fg); }
+.text-muted    { color: var(--muted-fg); }
+.text-brand    { color: var(--brand); }
+
+/* Border */
+.border-page   { border-color: var(--card-border); }
+
+/* Brand surface */
+.bg-brand           { background-color: var(--brand); }
+.border-brand       { border-color: var(--brand); }
+.ring-brand         { --tw-ring-color: var(--brand); }
+
+/* ============================================================
+   STICKY HEADER blur support
+   ============================================================ */
+.header-blur {
+  background-color: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ============================================================
+   CARD COMPONENT
+   ============================================================ */
+.ge-card {
+  background-color: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem; /* rounded-xl */
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+.ge-card:hover {
+  border-color: rgba(16,185,129,0.5);
+}
+
+/* ============================================================
+   INPUT COMPONENT
+   ============================================================ */
+.ge-input {
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--fg);
+  border-radius: 0.5rem;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+  width: 100%;
+}
+.ge-input::placeholder {
+  color: var(--muted-fg);
+}
+.ge-input:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+}
+
+/* ============================================================
+   SELECT COMPONENT
+   ============================================================ */
+.ge-select {
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--fg);
+  border-radius: 0.5rem;
+  height: 2.5rem;
+  padding: 0 2.25rem 0 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+  appearance: none;
+  width: 100%;
+  transition: border-color 0.15s ease;
+}
+.ge-select:focus {
+  border-color: var(--brand);
+}
+
+/* ============================================================
+   STATS GRID CELLS
+   ============================================================ */
+.ge-stat-cell {
+  background-color: var(--card);
+  padding: 1rem 1.25rem;
+}
+
+/* ============================================================
+   BADGE COMPONENT
+   ============================================================ */
+.ge-badge-brand {
+  background-color: var(--brand);
+  color: #ffffff;
+  border-radius: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+.ge-badge-brand-soft {
+  background-color: rgba(16,185,129,0.15);
+  color: var(--brand);
+  border-radius: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+.ge-badge-dark {
+  background-color: rgba(0,0,0,0.65);
+  color: #ffffff;
+  border-radius: 0.375rem;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+.ge-badge-muted {
+  background-color: var(--muted-bg);
+  color: var(--muted-fg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ============================================================
+   PRIMARY BUTTON
+   ============================================================ */
+.ge-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--brand);
+  color: #000000;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border-radius: 0.75rem;
+  padding: 0 1.25rem;
+  height: 2.5rem;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  white-space: nowrap;
+}
+.ge-btn-primary:hover { opacity: 0.9; }
+.ge-btn-primary:active { transform: translateY(1px); }
+
+.ge-btn-primary-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--brand);
+  color: #000000;
+  font-weight: 700;
+  font-size: 0.75rem;
+  border-radius: 0.625rem;
+  padding: 0 0.875rem;
+  height: 2rem;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.ge-btn-primary-sm:hover { opacity: 0.9; }
+
+/* ============================================================
+   ICON BUTTON
+   ============================================================ */
+.ge-btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--card-border);
+  background-color: var(--bg);
+  color: var(--muted-fg);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.ge-btn-icon:hover {
+  background-color: var(--muted-bg);
+  color: var(--fg);
+}
+
+/* ============================================================
+   WALLET CONNECTED BUTTON (transparent outline variant)
+   ============================================================ */
+.ge-btn-wallet-connected {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.3);
+  color: var(--brand);
+  font-weight: 700;
+  font-size: 0.75rem;
+  border-radius: 0.5rem;
+  padding: 0 0.875rem;
+  height: 2.25rem;
+  cursor: pointer;
+}
+
+/* ============================================================
+   CATEGORY PILL
+   ============================================================ */
+.ge-pill {
+  border-radius: 9999px;
+  border: 1px solid var(--card-border);
+  background-color: var(--bg);
+  color: var(--muted-fg);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.375rem 0.875rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.ge-pill:hover { color: var(--fg); border-color: rgba(16,185,129,0.4); }
+.ge-pill-active {
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background-color: var(--brand);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.375rem 0.875rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* ============================================================
+   NAV ITEM UNDERLINE
+   ============================================================ */
+.ge-nav-active-bar {
+  position: absolute;
+  bottom: -19px;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  border-radius: 9999px;
+  background-color: var(--brand);
+}
+
+/* ============================================================
+   SECTION SEPARATOR
+   ============================================================ */
+.ge-divider {
+  border-color: var(--card-border);
+}
+
+/* ============================================================
+   MODAL BACKDROP
+   ============================================================ */
+.ge-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  padding: 1rem;
+}
+.ge-modal {
+  background-color: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  width: 100%;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+.dark ::-webkit-scrollbar-thumb { background: #334155; }
+
+/* ============================================================
+   HIDE SCROLLBAR FOR HORIZONTAL PILL ROW
+   ============================================================ */
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* ============================================================
+   ANIMATION HELPERS
+   ============================================================ */
+@keyframes spin { to { transform: rotate(360deg); } }
+.animate-spin-slow { animation: spin 3s linear infinite; }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.animate-pulse { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeIn 0.15s ease; }

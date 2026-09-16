@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>GamerEscrow - Proje Mimarisi ve Klasör Ağacı</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+    
+    @page {
+      size: A4;
+      margin: 15mm;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: #0b0f19;
+      color: #e2e8f0;
+      margin: 0;
+      padding: 24px;
+      line-height: 1.6;
+    }
+
+    .header {
+      border-bottom: 2px solid #6366f1;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      color: #ffffff;
+      font-size: 26px;
+      margin: 0 0 8px 0;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(20, 241, 149, 0.15);
+      color: #14f195;
+      border: 1px solid rgba(20, 241, 149, 0.3);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    h2 {
+      color: #818cf8;
+      font-size: 18px;
+      margin-top: 24px;
+      border-bottom: 1px solid #1f293d;
+      padding-bottom: 6px;
+    }
+
+    pre {
+      background: #111827;
+      border: 1px solid #1f293d;
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      color: #38bdf8;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      background: #111827;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid #1f293d;
+      font-size: 13px;
+    }
+
+    th {
+      background: #1f293d;
+      color: #818cf8;
+      font-weight: 600;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    code {
+      font-family: 'Fira Code', monospace;
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .footer {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid #1f293d;
+      font-size: 11px;
+      color: #64748b;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>🎮 GamerEscrow • Proje Mimarisi ve Klasör Ağacı</h1>
+    <div class="subtitle">Next.js 14 App Router, Solana Anchor & Supabase Hybrid Architecture</div>
+    <div class="badge">Colosseum Eternal Architecture Specification</div>
+  </div>
+
+  <h2>1. Klasör ve Dosya Ağacı (Directory Tree)</h2>
+  <pre>GamerEscrow-Frontend/
+├── 📁 app/                             # Next.js App Router Sayfa Rotaları
+│   ├── 📄 global.css                   # Tailwind CSS & Özel Tema Stilleri (Glassmorphism, Glow)
+│   ├── 📄 layout.tsx                   # Ana Düzen (Navbar, Footer, Wallet Provider Wrapper)
+│   ├── 📄 page.tsx                     # 1. Vitrin / Ana Sayfa (Marketplace "/")
+│   ├── 📁 create-listing/              # 2. İlan Oluşturma Sayfası
+│   │   └── 📄 page.tsx                 # Form, AES-256 Şifreleme & Draft/Publish Aksiyonları
+│   ├── 📁 seller/                      # 3. Satıcı Yönetim Paneli
+│   │   └── 📄 page.tsx                 # 4 Sekmeli Panel (Drafts, Listed, In Escrow, Completed)
+│   ├── 📁 orders/                      # 4. Alıcı Sipariş ve Emanet Takip
+│   │   ├── 📄 page.tsx                 # Tüm Siparişlerim Listesi
+│   │   └── 📁 [id]/                    # Tekil Sipariş Detay Sayfası
+│   │       └── 📄 page.tsx             # Stepper UI, 24h Sayaç, DecryptBox, Onay/İtiraz
+│   ├── 📁 admin/                       # 5. Hakem ve Anlaşmazlık Paneli
+│   │   └── 📄 page.tsx                 # Auth Gate, Kanıt İnceleme & Dispute Karar Butonları
+│   └── 📁 profile/                     # Kullanıcı Profili ve İlan Geçmişi
+│       └── 📄 page.tsx                 # Cüzdana Bağlı İlanlar ve Geçmiş Alımlar
+│
+├── 📁 components/                      # Yeniden Kullanılabilir Arayüz Bileşenleri
+│   ├── 📁 layout/                      # Düzen Bileşenleri
+│   │   ├── 📄 Navbar.tsx               # Logo, Nav Linkleri, Devnet Badge & Wallet Connect
+│   │   └── 📄 Footer.tsx               # Alt Bilgi ve Linkler
+│   ├── 📁 modals/                      # Pop-Up ve Modal Sihirbazları
+│   │   ├── 📄 PublishingWizardModal.tsx # Ağa Yazma Sihirbazı (3 Adımlı Progress Modal)
+│   │   └── 📄 DisputeModal.tsx         # İtiraz ve Ekran Görüntüsü / Kanıt Yükleme Modalı
+│   └── 📁 ui/                          # Atomik Arayüz Elemanları
+│       ├── 📄 ListingCard.tsx          # İlan Kartı (Kapak Görseli, Fiyat, Escrow Badge)
+│       ├── 📄 CountdownTimer.tsx       # Live 24-Saatlik Dijital Geri Sayım Sayacı
+│       ├── 📄 Stepper.tsx              # 4 Adımlı İlerleme Çubuğu UI
+│       └── 📄 DecryptBox.tsx           # Maskeli Şifre Kutusu + Phantom İmzalı Çözücü
+│
+├── 📁 mock/                            # Demo ve Test Verileri
+│   └── 📄 mockData.ts                  # Örnek Oyun İlanları, Siparişler ve Kullanıcı Verileri
+│
+├── 📁 lib/                             # Yardımcı Kütüphaneler ve Entegrasyonlar
+│   ├── 📄 crypto.ts                    # AES-256 İstemci Şifreleme ve SHA-256 Hash Fonksiyonları
+│   └── 📄 anchorClient.ts              # Solana Anchor Provider ve Smart Contract RPC Bağlantısı
+│
+├── 📄 package.json                     # Proje Bağımlılıkları ve Komutlar
+├── 📄 tailwind.config.js               # GamerEscrow Koyu Renk Paleti ve Tema Ayarları
+├── 📄 tsconfig.json                    # TypeScript Yapılandırması
+├── 📄 next.config.mjs                  # Next.js & Web3 Webpack Ayarları
+└── 📄 postcss.config.js                # PostCSS Derleyici Yapılandırması</pre>
+
+  <h2>2. Sayfa Rotaları ve Görev Haritası</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rota (Route)</th>
+        <th>Dosya Yolu</th>
+        <th>Görev & Açıklama</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>/</code></td>
+        <td><code>app/page.tsx</code></td>
+        <td><b>Marketplace Vitrin:</b> Oyun ilanlarının sergilendiği, arama ve filtreleme sayfası.</td>
+      </tr>
+      <tr>
+        <td><code>/create-listing</code></td>
+        <td><code>app/create-listing/page.tsx</code></td>
+        <td><b>İlan Oluşturma:</b> İstemcide AES-256 şifreleme ile taslak veya Solana ağında ilan açma.</td>
+      </tr>
+      <tr>
+        <td><code>/seller</code></td>
+        <td><code>app/seller/page.tsx</code></td>
+        <td><b>Satıcı Paneli:</b> 4 Sekmeli yönetim alanı (Drafts, Listed, In Escrow, Completed).</td>
+      </tr>
+      <tr>
+        <td><code>/orders/[id]</code></td>
+        <td><code>app/orders/[id]/page.tsx</code></td>
+        <td><b>Sipariş & Emanet Takip:</b> 4-adımlı Stepper UI, 24h canlı sayaç, DecryptBox ve İtiraz.</td>
+      </tr>
+      <tr>
+        <td><code>/admin</code></td>
+        <td><code>app/admin/page.tsx</code></td>
+        <td><b>Hakem Paneli:</b> Email OTP + Whitelist cüzdan girişi ve hakemlik kararları.</td>
+      </tr>
+      <tr>
+        <td><code>/profile</code></td>
+        <td><code>app/profile/page.tsx</code></td>
+        <td><b>Kullanıcı Profili:</b> İlan ve sipariş geçmişi arşivi.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3. Renk ve Tema Şeması (Tailwind CSS)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Sınıf / Değişken</th>
+        <th>HEX Kodu</th>
+        <th>Kullanım Alanı</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>bg-background</code></td>
+        <td><code>#0b0f19</code></td>
+        <td>Genel Koyu Arka Plan (Slate 950)</td>
+      </tr>
+      <tr>
+        <td><code>bg-surface</code></td>
+        <td><code>#111827</code></td>
+        <td>Kartlar ve Panel Yüzeyleri (Slate 900)</td>
+      </tr>
+      <tr>
+        <td><code>primary</code></td>
+        <td><code>#6366f1</code></td>
+        <td>Ana Mor/Indigo Vurgu Rengi ve Butonlar</td>
+      </tr>
+      <tr>
+        <td><code>onchain</code></td>
+        <td><code>#14f195</code></td>
+        <td>Solana Yeşili (ESCROW PROTECTED & On-Chain Rozetleri)</td>
+      </tr>
+      <tr>
+        <td><code>danger</code></td>
+        <td><code>#f43f5e</code></td>
+        <td>İtiraz / Kırmızı Aksiyon ve Uyarı Kutuları</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    GamerEscrow Project Architecture PDF • Generated for Development Reference
+  </div>
+
+</body>
+</html>
