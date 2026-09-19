@@ -1,0 +1,459 @@
+{
+  "address": "EjhkjCLXe6aPg1zpSi9ihJemo4JvYVacQzSi8Nbczytp",
+  "metadata": {
+    "name": "gamer_escrow",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "buy_item",
+      "discriminator": [
+        80,
+        82,
+        193,
+        201,
+        216,
+        27,
+        70,
+        184
+      ],
+      "accounts": [
+        {
+          "name": "listing_account",
+          "writable": true
+        },
+        {
+          "name": "escrow_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "listing_account"
+              }
+            ]
+          }
+        },
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "cancel_listing",
+      "discriminator": [
+        41,
+        183,
+        50,
+        232,
+        230,
+        233,
+        157,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "listing_account",
+          "writable": true
+        },
+        {
+          "name": "seller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "escrow_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "listing_account"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_listing",
+      "discriminator": [
+        18,
+        168,
+        45,
+        24,
+        191,
+        31,
+        117,
+        54
+      ],
+      "accounts": [
+        {
+          "name": "listing_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  115,
+                  116,
+                  105,
+                  110,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seller"
+              },
+              {
+                "kind": "arg",
+                "path": "data_hash"
+              }
+            ]
+          }
+        },
+        {
+          "name": "seller",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "price",
+          "type": "u64"
+        },
+        {
+          "name": "data_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "open_dispute",
+      "discriminator": [
+        137,
+        25,
+        99,
+        119,
+        23,
+        223,
+        161,
+        42
+      ],
+      "accounts": [
+        {
+          "name": "listing_account",
+          "writable": true
+        },
+        {
+          "name": "initiator",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "release_funds",
+      "discriminator": [
+        225,
+        88,
+        91,
+        108,
+        126,
+        52,
+        2,
+        26
+      ],
+      "accounts": [
+        {
+          "name": "listing_account",
+          "writable": true
+        },
+        {
+          "name": "seller",
+          "writable": true
+        },
+        {
+          "name": "escrow_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "listing_account"
+              }
+            ]
+          }
+        },
+        {
+          "name": "buyer",
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "resolve_dispute",
+      "discriminator": [
+        231,
+        6,
+        202,
+        6,
+        96,
+        103,
+        12,
+        230
+      ],
+      "accounts": [
+        {
+          "name": "listing_account",
+          "writable": true
+        },
+        {
+          "name": "winner",
+          "writable": true
+        },
+        {
+          "name": "escrow_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "listing_account"
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "winner_is_buyer",
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ListingAccount",
+      "discriminator": [
+        59,
+        89,
+        136,
+        25,
+        21,
+        196,
+        183,
+        13
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "UnauthorizedAdmin",
+      "msg": "Only the configured admin can resolve disputes"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidStatus",
+      "msg": "The listing is not in a valid state for this operation"
+    },
+    {
+      "code": 6002,
+      "name": "BuyerRequired",
+      "msg": "A buyer is required for this operation"
+    },
+    {
+      "code": 6003,
+      "name": "UnauthorizedBuyer",
+      "msg": "The caller is not the listing buyer"
+    },
+    {
+      "code": 6004,
+      "name": "UnauthorizedSeller",
+      "msg": "The caller is not the listing seller"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidPrice",
+      "msg": "The listing price must be greater than zero"
+    },
+    {
+      "code": 6006,
+      "name": "LockPeriodActive",
+      "msg": "Escrow 24-hour inspection lock period is active. Seller cannot cancel or withdraw."
+    },
+    {
+      "code": 6007,
+      "name": "LockPeriodNotExpired",
+      "msg": "Escrow inspection period has not expired yet."
+    },
+    {
+      "code": 6008,
+      "name": "InvalidWinner",
+      "msg": "Invalid dispute winner account specified."
+    }
+  ],
+  "types": [
+    {
+      "name": "ListingAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "seller",
+            "type": "pubkey"
+          },
+          {
+            "name": "buyer",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "price",
+            "type": "u64"
+          },
+          {
+            "name": "data_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "ListingStatus"
+              }
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "vault_bump",
+            "type": "u8"
+          },
+          {
+            "name": "escrow_start_time",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ListingStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Listed"
+          },
+          {
+            "name": "InEscrow"
+          },
+          {
+            "name": "Completed"
+          },
+          {
+            "name": "InDispute"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    }
+  ]
+}

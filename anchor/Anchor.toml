@@ -1,0 +1,19 @@
+skip_local_validator = true
+
+[toolchain]
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+anchor = "EjhkjCLXe6aPg1zpSi9ihJemo4JvYVacQzSi8Nbczytp"
+
+[provider]
+cluster = "devnet"
+wallet = "/home/canan/.config/solana/id.json"
+
+[scripts]
+test = "cargo test"
+
+[hooks]
