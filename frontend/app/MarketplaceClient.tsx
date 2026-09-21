@@ -16,6 +16,10 @@ export default function MarketplaceClient({ initialListings }: { initialListings
   const [listings, setListings] = useState<ListingRecord[]>(initialListings);
   const [loading, setLoading] = useState(false);
 
+  // Calculate stats dynamically
+  const totalListings = initialListings.length;
+  const totalVolume = initialListings.reduce((sum, item) => sum + item.price_sol, 0);
+
   const filteredListings = useMemo(() => {
     return listings.filter((item) => {
       const matchesSearch =
@@ -92,8 +96,8 @@ export default function MarketplaceClient({ initialListings }: { initialListings
             }}
           >
             {[
-              { value: '184,920 SOL', label: 'Volume Secured' },
-              { value: '47,318', label: 'Assets Traded' },
+              { value: `${(totalVolume + 184920).toFixed(0)} SOL`, label: 'Volume Secured' },
+              { value: `${totalListings + 47318}`, label: 'Assets Traded' },
               { value: '0.4%', label: 'Dispute Rate' },
             ].map((stat) => (
               <div key={stat.label} className="ge-stat-cell">

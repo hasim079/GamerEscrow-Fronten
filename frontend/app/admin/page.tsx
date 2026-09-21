@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Eye, Shield, CheckCircle2, X, AlertTriangle } from 'lucide-react';
+import { Eye, Shield, CheckCircle2, X, AlertTriangle, LogIn } from 'lucide-react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Transaction } from '@solana/web3.js';
-import { checkIsAdmin, fetchDisputes } from '../../lib/supabaseClient';
+import { checkIsAdmin, fetchDisputes, supabase } from '../../lib/supabaseClient';
+import type { Session } from '@supabase/supabase-js';
 import { buildResolveDisputeInstruction } from '../../lib/anchorClient';
 
 export interface DisputeItem {
@@ -29,22 +30,46 @@ export default function AdminPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [resolutionMessage, setResolutionMessage] = useState<string | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
 
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setCheckingAuth(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   useEffect(() => {
     async function verifyAdmin() {
-      if (!publicKey) {
+      if (!publicKey || !session?.user?.email) {
         setIsAuthorized(null);
         setDisputes([]);
         return;
       }
 
       const walletAddress = publicKey.toBase58();
+      const email = session.user.email;
 
       try {
-        const hasAccess = await checkIsAdmin(walletAddress);
+        // Double check: Wallet AND Google Email must be in the whitelist
+        const { data, error } = await supabase
+          .from('admin_whitelist')
+          .select('*')
+          .eq('wallet_pubkey', walletAddress)
+          .eq('email', email)
+          .single();
+          
+        const hasAccess = Boolean(data && !error);
         setIsAuthorized(hasAccess);
 
         if (hasAccess) {
@@ -75,7 +100,7 @@ export default function AdminPage() {
       }
     }
     verifyAdmin();
-  }, [publicKey]);
+  }, [publicKey, session]);
 
   const handleArbitrationAction = async (action: 'Refund Buyer' | 'Release to Seller') => {
     if (!selectedDispute) return;
@@ -116,13 +141,55 @@ export default function AdminPage() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/admin'
+      }
+    });
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  if (checkingAuth) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-20 text-center text-muted-foreground">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <div className="rounded-2xl border border-border bg-card p-12 text-center">
+          <LogIn className="mx-auto size-12 text-muted-foreground mb-4 opacity-50" />
+          <h2 className="text-xl font-bold text-foreground">Admin Login Required</h2>
+          <p className="mt-2 text-sm text-muted-foreground mb-6">Step 1: Please log in with your Google account.</p>
+          <button
+            onClick={handleGoogleLogin}
+            className="inline-flex items-center gap-2 rounded-xl bg-foreground px-6 py-3 text-sm font-bold text-background hover:bg-muted-foreground transition-all"
+          >
+            Sign in with Google
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!publicKey) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <div className="rounded-2xl border border-border bg-card p-12 text-center">
-          <Shield className="mx-auto size-12 text-muted-foreground mb-4 opacity-50" />
-          <h2 className="text-xl font-bold text-foreground">Admin Access Required</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Please connect your moderator wallet to access this panel.</p>
+          <Shield className="mx-auto size-12 text-brand mb-4" />
+          <h2 className="text-xl font-bold text-foreground">Wallet Connection Required</h2>
+          <p className="mt-2 text-sm text-muted-foreground mb-6">Step 2: Authenticated as {session.user.email}. Now connect your admin wallet.</p>
+          <button onClick={handleLogout} className="text-xs text-muted-foreground hover:underline">
+            Not {session.user.email}? Sign out
+          </button>
         </div>
       </div>
     );
@@ -134,8 +201,19 @@ export default function AdminPage() {
         <div className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.04] p-12 text-center">
           <AlertTriangle className="mx-auto size-12 text-rose-500 mb-4" />
           <h2 className="text-xl font-bold text-rose-500">Unauthorized</h2>
-          <p className="mt-2 text-sm text-foreground">This wallet address is not whitelisted for administrative actions.</p>
+          <p className="mt-2 text-sm text-foreground">Email <strong>{session.user.email}</strong> and Wallet <strong>{publicKey.toBase58().slice(0, 6)}...</strong> are not whitelisted together.</p>
+          <button onClick={handleLogout} className="mt-6 text-xs text-muted-foreground hover:underline">
+            Sign out
+          </button>
         </div>
+      </div>
+    );
+  }
+
+  if (isAuthorized === null) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-20 text-center text-muted-foreground">
+        Verifying admin privileges...
       </div>
     );
   }

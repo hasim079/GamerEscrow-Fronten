@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, ShieldCheck, ArrowRight, ArrowLeft, Lock, KeyRound } from 'lucide-react';
 import { PublishingWizardModal } from '../../components/modals/PublishingWizardModal';
+import { createListingRecord } from '../../lib/supabaseClient';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 interface GameOption {
   id: string;
@@ -62,6 +64,33 @@ export default function CreateListingWizardPage() {
   const [securityKeys, setSecurityKeys] = useState('');
 
   const [isPublishingOpen, setIsPublishingOpen] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const { publicKey } = useWallet();
+
+  const handleSaveDraft = async () => {
+    if (!publicKey) return alert("Please connect wallet first.");
+    setIsSavingDraft(true);
+    try {
+      await createListingRecord({
+        seller_pubkey: publicKey.toBase58(),
+        buyer_pubkey: null,
+        title,
+        game: selectedGame,
+        price_sol: parseFloat(priceSol) || 0,
+        data_hash: "draft_no_hash",
+        encrypted_credentials: "draft_no_credentials",
+        status: "Draft",
+        rank,
+        description,
+      });
+      router.push('/dashboard');
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save draft");
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
 
   const wizardSteps = [
     { num: 1, label: 'Select Game' },
@@ -93,24 +122,22 @@ export default function CreateListingWizardPage() {
             <React.Fragment key={step.num}>
               <div className="flex flex-col items-center sm:flex-row sm:gap-2.5">
                 <div
-                  className={`flex size-6 sm:size-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
-                    isDone
-                      ? 'bg-brand text-black font-bold'
-                      : isCurrent
+                  className={`flex size-6 sm:size-7 items-center justify-center rounded-full text-xs font-bold transition-all ${isDone
+                    ? 'bg-brand text-black font-bold'
+                    : isCurrent
                       ? 'border-2 border-brand bg-brand/10 text-brand'
                       : 'border border-border/80 bg-muted/40 text-muted-foreground'
-                  }`}
+                    }`}
                 >
                   {isDone ? <Check className="size-3.5 stroke-[2.5]" /> : step.num}
                 </div>
                 <span
-                  className={`text-xs mt-1 sm:mt-0 ${
-                    isCurrent
-                      ? 'text-foreground font-bold'
-                      : isDone
+                  className={`text-xs mt-1 sm:mt-0 ${isCurrent
+                    ? 'text-foreground font-bold'
+                    : isDone
                       ? 'text-foreground font-medium'
                       : 'text-muted-foreground'
-                  }`}
+                    }`}
                 >
                   {step.label}
                 </span>
@@ -119,9 +146,8 @@ export default function CreateListingWizardPage() {
               {idx < wizardSteps.length - 1 && (
                 <div className="hidden flex-1 sm:block px-3">
                   <div
-                    className={`h-0.5 w-full rounded-full ${
-                      currentStep > step.num ? 'bg-brand' : 'bg-border/60'
-                    }`}
+                    className={`h-0.5 w-full rounded-full ${currentStep > step.num ? 'bg-brand' : 'bg-border/60'
+                      }`}
                   />
                 </div>
               )}
@@ -146,11 +172,10 @@ export default function CreateListingWizardPage() {
                 <div
                   key={g.id}
                   onClick={() => setSelectedGame(g.name)}
-                  className={`group relative cursor-pointer rounded-2xl border overflow-hidden transition-all ${
-                    isSelected
-                      ? 'border-brand ring-2 ring-brand/30 shadow-md'
-                      : 'border-border bg-card hover:border-brand/40'
-                  }`}
+                  className={`group relative cursor-pointer rounded-2xl border overflow-hidden transition-all ${isSelected
+                    ? 'border-brand ring-2 ring-brand/30 shadow-md'
+                    : 'border-border bg-card hover:border-brand/40'
+                    }`}
                 >
                   <div className="relative h-28 w-full overflow-hidden bg-muted">
                     <img
@@ -348,14 +373,24 @@ export default function CreateListingWizardPage() {
             <ArrowRight className="size-3.5" />
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={() => setIsPublishingOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-6 py-2.5 text-xs font-bold text-black hover:bg-brand-hover active:scale-[0.98] transition-all shadow-sm"
-          >
-            <span>Publish to Solana</span>
-            <Check className="size-3.5" />
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={isSavingDraft}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-6 py-2.5 text-xs font-bold text-foreground hover:bg-muted active:scale-[0.98] transition-all shadow-sm"
+            >
+              <span>{isSavingDraft ? 'Saving...' : 'Save as Draft'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsPublishingOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-6 py-2.5 text-xs font-bold text-black hover:bg-brand-hover active:scale-[0.98] transition-all shadow-sm"
+            >
+              <span>Publish to Solana</span>
+              <Check className="size-3.5" />
+            </button>
+          </div>
         )}
       </div>
 

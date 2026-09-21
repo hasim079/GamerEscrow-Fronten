@@ -1,16 +1,19 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { fetchBuyerOrders, ListingRecord } from '../../lib/supabaseClient';
+import { fetchBuyerOrders, ListingRecord, updateListingStatus } from '../../lib/supabaseClient';
+import { Transaction, PublicKey } from '@solana/web3.js';
+import { buildReleaseFundsInstruction, buildOpenDisputeInstruction } from '../../lib/anchorClient';
 import { Stepper } from '../../components/ui/Stepper';
 import { CountdownTimer } from '../../components/ui/CountdownTimer';
 import { DecryptBox } from '../../components/ui/DecryptBox';
 import { DisputeModal } from '../../components/modals/DisputeModal';
 import { Shield, Copy, Check, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 
 export default function OrdersPage() {
-  const { publicKey } = useWallet();
+  const { publicKey, sendTransaction } = useWallet();
+  const { connection } = useConnection();
   const [ordersList, setOrdersList] = useState<ListingRecord[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<ListingRecord | null>(null);
   const [isDisputeOpen, setIsDisputeOpen] = useState(false);
@@ -36,23 +39,53 @@ export default function OrdersPage() {
     setTimeout(() => setCopiedVault(false), 2000);
   };
 
-  const handleReleaseFunds = () => {
-    if (!selectedOrder) return;
+  const handleReleaseFunds = async () => {
+    if (!selectedOrder || !publicKey || !sendTransaction) return;
     setIsReleasing(true);
-    setTimeout(() => {
-      setIsReleasing(false);
+    try {
+      if (!selectedOrder.escrow_pda || !selectedOrder.seller_pubkey) throw new Error("Missing PDA or seller pubkey");
+      const listingPda = new PublicKey(selectedOrder.escrow_pda);
+      const sellerPubkey = new PublicKey(selectedOrder.seller_pubkey);
+      const ix = await buildReleaseFundsInstruction(publicKey, sellerPubkey, listingPda);
+      const tx = new Transaction().add(ix);
+      const latestBlockhash = await connection.getLatestBlockhash('confirmed');
+      tx.recentBlockhash = latestBlockhash.blockhash;
+      tx.feePayer = publicKey;
+      const signature = await sendTransaction(tx, connection);
+      await connection.confirmTransaction({ signature, blockhash: latestBlockhash.blockhash, lastValidBlockHeight: latestBlockhash.lastValidBlockHeight }, 'confirmed');
+      await updateListingStatus(selectedOrder.id, 'Completed');
       setReleasedSuccess(true);
       const updated = { ...selectedOrder, status: 'Completed' as const };
       setSelectedOrder(updated);
       setOrdersList((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
-    }, 1200);
+    } catch (err: any) {
+      console.error(err);
+      alert('Failed to release funds: ' + err.message);
+    } finally {
+      setIsReleasing(false);
+    }
   };
 
-  const handleDisputeSubmit = (reason: string, details: string) => {
-    if (!selectedOrder) return;
-    const updated = { ...selectedOrder, status: 'InDispute' as const };
-    setSelectedOrder(updated);
-    setOrdersList((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+  const handleDisputeSubmit = async (reason: string, details: string) => {
+    if (!selectedOrder || !publicKey || !sendTransaction) return;
+    try {
+      if (!selectedOrder.escrow_pda) throw new Error("Missing PDA");
+      const listingPda = new PublicKey(selectedOrder.escrow_pda);
+      const ix = await buildOpenDisputeInstruction(publicKey, listingPda);
+      const tx = new Transaction().add(ix);
+      const latestBlockhash = await connection.getLatestBlockhash('confirmed');
+      tx.recentBlockhash = latestBlockhash.blockhash;
+      tx.feePayer = publicKey;
+      const signature = await sendTransaction(tx, connection);
+      await connection.confirmTransaction({ signature, blockhash: latestBlockhash.blockhash, lastValidBlockHeight: latestBlockhash.lastValidBlockHeight }, 'confirmed');
+      await updateListingStatus(selectedOrder.id, 'InDispute');
+      const updated = { ...selectedOrder, status: 'InDispute' as const };
+      setSelectedOrder(updated);
+      setOrdersList((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+    } catch (err: any) {
+      console.error(err);
+      alert('Failed to open dispute: ' + err.message);
+    }
   };
 
   // Null guard — cüzdan yoksa veya yükleniyor

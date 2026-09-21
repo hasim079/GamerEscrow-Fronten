@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { Plus, Link as LinkIcon, Package, Clock, TrendingUp, Upload, CheckCircle2 } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { fetchSellerListings, ListingRecord } from '../../lib/supabaseClient';
+import { PublishingWizardModal } from '../../components/modals/PublishingWizardModal';
 
 export default function SellerDashboardPage() {
   const [activeTab, setActiveTab] = useState<'drafts' | 'active' | 'escrow' | 'completed'>('drafts');
   const [publishedIds, setPublishedIds] = useState<string[]>([]);
   const [dbListings, setDbListings] = useState<ListingRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [publishingDraft, setPublishingDraft] = useState<ListingRecord | null>(null);
   const { publicKey } = useWallet();
 
   useEffect(() => {
@@ -24,8 +26,8 @@ export default function SellerDashboardPage() {
     load();
   }, [publicKey]);
 
-  const handlePublish = (id: string) => {
-    setPublishedIds((prev) => [...prev, id]);
+  const handlePublish = (draft: ListingRecord) => {
+    setPublishingDraft(draft);
   };
 
   // Derived lists by status
@@ -188,7 +190,7 @@ export default function SellerDashboardPage() {
                         <span>Published on Solana</span>
                       </div>
                     ) : (
-                      <button type="button" onClick={() => handlePublish(draft.id)}
+                      <button type="button" onClick={() => handlePublish(draft)}
                         className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-5 py-2 text-xs font-bold text-black hover:bg-brand-hover active:scale-[0.98] transition-all shadow-sm">
                         <Upload className="size-3.5" />
                         <span>Publish</span>
@@ -272,15 +274,56 @@ export default function SellerDashboardPage() {
 
       {/* Tab: Completed */}
       {activeTab === 'completed' && (
-        <div className="rounded-2xl border border-border bg-card p-8 text-center">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-brand/10 text-brand mx-auto mb-3">
-            <CheckCircle2 className="size-6" />
-          </div>
-          <h3 className="text-sm font-bold text-foreground">Completed Handovers</h3>
-          <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-            All historic completed escrow releases have been recorded on the Solana ledger. Total payout: 128.6 SOL.
-          </p>
+        <div className="space-y-3">
+          {loading ? (
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          ) : completedListings.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-card p-8 text-center">
+              <div className="flex size-12 items-center justify-center rounded-2xl bg-brand/10 text-brand mx-auto mb-3">
+                <CheckCircle2 className="size-6" />
+              </div>
+              <h3 className="text-sm font-bold text-foreground">Completed Handovers</h3>
+              <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+                No completed escrow releases yet.
+              </p>
+            </div>
+          ) : (
+            completedListings.map((order) => (
+              <div key={order.id} className="flex items-center justify-between rounded-2xl border border-emerald-500/20 bg-card p-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-bold text-emerald-500">{order.id.slice(0, 8)}…</span>
+                    <span className="text-xs font-bold text-foreground">{order.title}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Buyer: {order.buyer_pubkey ? `${order.buyer_pubkey.slice(0, 6)}…` : '—'} · Vault: {order.vault_pda ?? '—'}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-mono text-sm font-extrabold text-foreground">{order.price_sol} SOL</div>
+                  <span className="text-[10px] font-bold text-emerald-500 uppercase mt-1 inline-block">Released</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
+      )}
+      {publishingDraft && (
+        <PublishingWizardModal
+          isOpen={!!publishingDraft}
+          onClose={() => setPublishingDraft(null)}
+          onSuccess={() => {
+            setPublishedIds((prev) => [...prev, publishingDraft.id]);
+            setPublishingDraft(null);
+          }}
+          listingTitle={publishingDraft.title}
+          priceSol={publishingDraft.price_sol}
+          credentialsData={{
+            game: publishingDraft.game,
+            description: publishingDraft.description,
+            rank: publishingDraft.rank,
+          }}
+        />
       )}
     </div>
   );
