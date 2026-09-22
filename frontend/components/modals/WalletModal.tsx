@@ -79,7 +79,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
                   <span style={{ fontSize: '1.25rem' }}>{getWalletIcon(wallet.adapter.name)}</span>
                   <div>
                     <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--fg)' }}>{wallet.adapter.name}</div>
-                    <div style={{ fontSize: '0.6875rem', color: 'var(--muted-fg)' }}>Solana Mainnet</div>
+                    <div style={{ fontSize: '0.6875rem', color: 'var(--muted-fg)' }}>Solana Devnet</div>
                   </div>
                 </div>
                 {isPopular && (

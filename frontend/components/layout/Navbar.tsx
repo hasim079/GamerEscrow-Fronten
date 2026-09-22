@@ -102,7 +102,7 @@ export function Navbar() {
             {/* Solana Mainnet badge */}
             <div className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-foreground">
               <span className="size-1.5 rounded-full bg-brand animate-pulse" />
-              <span>Solana Mainnet</span>
+              <span>Solana Devnet</span>
             </div>
 
             {/* Theme toggle */}
