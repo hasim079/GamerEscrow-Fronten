@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Eye, Shield, CheckCircle2, X, AlertTriangle, LogIn } from 'lucide-react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, Transaction } from '@solana/web3.js';
-import { checkIsAdmin, fetchDisputes, supabase } from '../../lib/supabaseClient';
+import { checkIsAdmin, fetchDisputes, supabase, updateListingStatus } from '../../lib/supabaseClient';
 import type { Session } from '@supabase/supabase-js';
 import { buildResolveDisputeInstruction } from '../../lib/anchorClient';
 
@@ -84,10 +84,13 @@ export default function AdminPage() {
               amount: `${d.listings?.price_sol || 0} SOL`,
               status: d.status === 'Open' ? 'Pending Review' : 'Resolved - Released',
               buyerProof: { text: d.details || d.reason || 'No proof provided.', image: (d.evidence_urls && d.evidence_urls.length > 0) ? d.evidence_urls[0] : undefined },
-              sellerProof: { text: 'Waiting for seller response.' },
+              sellerProof: { 
+                text: d.seller_response || 'Waiting for seller response.',
+                image: (d.seller_evidence_urls && d.seller_evidence_urls.length > 0) ? d.seller_evidence_urls[0] : undefined
+              },
               buyerAddress: d.initiator_pubkey || '',
               sellerAddress: d.listings?.seller_pubkey || '',
-              vaultAddress: d.listings?.vault_pda || d.listings?.escrow_pda || '',
+              vaultAddress: d.listings?.escrow_pda || '',
             }));
             setDisputes(mappedDisputes);
           } else {
@@ -125,19 +128,25 @@ export default function AdminPage() {
           tx.feePayer = publicKey;
 
           await sendTransaction(tx, connection);
+          
+          // Update DB Statuses
+          const newListingStatus = action === 'Refund Buyer' ? 'Cancelled' : 'Completed';
+          const newDisputeStatus = action === 'Refund Buyer' ? 'Resolved_Refunded' : 'Resolved_Released';
+          
+          await updateListingStatus(selectedDispute.orderId, newListingStatus as any);
+          await supabase.from('disputes').update({ status: newDisputeStatus }).eq('id', selectedDispute.id);
+
+          const newUiStatus = action === 'Refund Buyer' ? 'Resolved - Refunded' : 'Resolved - Released';
+          const updated = { ...selectedDispute, status: newUiStatus as any };
+          setDisputes((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
+          setSelectedDispute(updated);
+          setResolutionMessage(`Dispute resolved: ${action}`);
         } catch (chainErr) {
           console.warn('On-chain fallback:', chainErr);
         }
       }
     } finally {
-      setTimeout(() => {
-        setIsProcessing(false);
-        const newStatus = action === 'Refund Buyer' ? 'Resolved - Refunded' : 'Resolved - Released';
-        const updated = { ...selectedDispute, status: newStatus as any };
-        setDisputes((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
-        setSelectedDispute(updated);
-        setResolutionMessage(`Dispute resolved: ${action}`);
-      }, 1000);
+      setIsProcessing(false);
     }
   };
 
