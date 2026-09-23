@@ -6,7 +6,15 @@ import { fetchMarketplaceListings, ListingRecord } from '../lib/supabaseClient';
 import { ListingCard } from '../components/ui/ListingCard';
 import { BuyEscrowModal } from '../components/modals/BuyEscrowModal';
 
-const CATEGORIES = ['All', 'FPS', 'MMORPG', 'Battle Royale', 'Racing', 'Strategy', 'Action RPG'];
+const CATEGORIES = [
+  'All',
+  'VALORANT',
+  'Fortnite',
+  'League of Legends',
+  'Counter-Strike 2 (CS2)',
+  'EA Sports FC 26',
+  'PUBG: BATTLEGROUNDS',
+];
 
 export default function MarketplaceClient({ initialListings }: { initialListings: ListingRecord[] }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,14 +30,28 @@ export default function MarketplaceClient({ initialListings }: { initialListings
 
   const filteredListings = useMemo(() => {
     return listings.filter((item) => {
+      const q = searchQuery.toLowerCase();
       const matchesSearch =
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.game.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (item.tags ?? []).some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+        !q ||
+        item.title.toLowerCase().includes(q) ||
+        item.game.toLowerCase().includes(q) ||
+        (item.tags ?? []).some((t) => t.toLowerCase().includes(q));
+
+      const g = item.game.toLowerCase();
+      const cat = (item.category ?? '').toLowerCase();
+      const sel = selectedCategory.toLowerCase();
+
       const matchesCategory =
         selectedCategory === 'All' ||
-        (item.category ?? '').toLowerCase() === selectedCategory.toLowerCase() ||
-        item.game.toLowerCase() === selectedCategory.toLowerCase();
+        cat === sel ||
+        g === sel ||
+        (selectedCategory === 'Counter-Strike 2 (CS2)' && (g.includes('cs2') || g.includes('counter-strike'))) ||
+        (selectedCategory === 'League of Legends' && (g === 'lol' || g.includes('league'))) ||
+        (selectedCategory === 'VALORANT' && g.includes('valorant')) ||
+        (selectedCategory === 'Fortnite' && g.includes('fortnite')) ||
+        (selectedCategory === 'EA Sports FC 26' && (g.includes('fc') || g.includes('fifa'))) ||
+        (selectedCategory === 'PUBG: BATTLEGROUNDS' && g.includes('pubg'));
+
       return matchesSearch && matchesCategory;
     }).sort((a, b) => {
       if (sortBy === 'price-asc') return a.price_sol - b.price_sol;

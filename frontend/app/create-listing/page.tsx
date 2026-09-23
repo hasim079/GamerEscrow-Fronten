@@ -15,47 +15,47 @@ interface GameOption {
 
 const GAME_OPTIONS: GameOption[] = [
   {
-    id: 'vanguard-strike',
-    name: 'Vanguard Strike',
-    image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400&q=80',
+    id: 'valorant',
+    name: 'VALORANT',
+    image: '/images/valorant.jpg',
   },
   {
-    id: 'aethermoor',
-    name: 'Aethermoor',
-    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=400&q=80',
+    id: 'fortnite',
+    name: 'Fortnite',
+    image: '/images/fortnite.jpg',
   },
   {
-    id: 'dropzone-99',
-    name: 'Dropzone 99',
-    image: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=400&q=80',
+    id: 'lol',
+    name: 'League of Legends',
+    image: '/images/lol.jpg',
   },
   {
-    id: 'velocity-x',
-    name: 'Velocity X',
-    image: 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=400&q=80',
+    id: 'cs2',
+    name: 'Counter-Strike 2 (CS2)',
+    image: '/images/cs2.jpg',
   },
   {
-    id: 'void-command',
-    name: 'Void Command',
-    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80',
+    id: 'ea-sports-fc-26',
+    name: 'EA Sports FC 26',
+    image: '/images/fc26.jpg',
   },
   {
-    id: 'ashen-realm',
-    name: 'Ashen Realm',
-    image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=400&q=80',
+    id: 'pubg',
+    name: 'PUBG: BATTLEGROUNDS',
+    image: '/images/pubg.jpg',
   },
 ];
 
 export default function CreateListingWizardPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedGame, setSelectedGame] = useState('Vanguard Strike');
+  const [selectedGame, setSelectedGame] = useState('VALORANT');
 
   // Account details
-  const [title, setTitle] = useState('Immortal Account - 22 Knife Skins');
-  const [rank, setRank] = useState('Immortal 3');
-  const [priceSol, setPriceSol] = useState('9.4');
-  const [description, setDescription] = useState('Full knife skin collection with original email transfer.');
+  const [title, setTitle] = useState('VALORANT Radiant Account · Kuronami & Prime Vandal');
+  const [rank, setRank] = useState('Radiant');
+  const [priceSol, setPriceSol] = useState('12.5');
+  const [description, setDescription] = useState('Peak Radiant account with full agent roster, Kuronami Vandal, Reaver Karambit, and full access creation email.');
 
   // Confidential credentials
   const [username, setUsername] = useState('');
@@ -172,15 +172,18 @@ export default function CreateListingWizardPage() {
                 <div
                   key={g.id}
                   onClick={() => setSelectedGame(g.name)}
-                  className={`group relative cursor-pointer rounded-2xl border overflow-hidden transition-all ${isSelected
-                    ? 'border-brand ring-2 ring-brand/30 shadow-md'
-                    : 'border-border bg-card hover:border-brand/40'
+                  className={`group relative cursor-pointer rounded-2xl overflow-hidden transition-all ${isSelected
+                    ? 'border-2 border-brand ring-4 ring-brand/25 shadow-lg'
+                    : 'border border-border bg-card hover:border-brand/40'
                     }`}
                 >
                   <div className="relative h-28 w-full overflow-hidden bg-muted">
                     <img
                       src={g.image}
                       alt={g.name}
+                      onError={(e) => {
+                        e.currentTarget.src = '/images/default-game.svg';
+                      }}
                       className="size-full object-cover transition-transform group-hover:scale-105"
                     />
                     {isSelected && (
@@ -218,7 +221,7 @@ export default function CreateListingWizardPage() {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-xl border border-border bg-muted/20 px-3.5 py-2.5 text-xs font-semibold text-foreground outline-none focus:border-brand"
+                className="w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-xs font-semibold text-foreground outline-none focus:border-brand"
                 placeholder="e.g. Immortal Account - 22 Knife Skins"
               />
             </div>
@@ -232,7 +235,7 @@ export default function CreateListingWizardPage() {
                   type="text"
                   value={rank}
                   onChange={(e) => setRank(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-muted/20 px-3.5 py-2.5 text-xs font-semibold text-foreground outline-none focus:border-brand"
+                  className="w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-xs font-semibold text-foreground outline-none focus:border-brand"
                   placeholder="e.g. Immortal 3"
                 />
               </div>
@@ -245,7 +248,7 @@ export default function CreateListingWizardPage() {
                   step="0.1"
                   value={priceSol}
                   onChange={(e) => setPriceSol(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-muted/20 px-3.5 py-2.5 text-xs font-semibold text-foreground outline-none focus:border-brand"
+                  className="w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-xs font-semibold text-foreground outline-none focus:border-brand"
                   placeholder="e.g. 9.4"
                 />
               </div>
@@ -259,7 +262,7 @@ export default function CreateListingWizardPage() {
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-xl border border-border bg-muted/20 px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-brand"
+                className="w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-brand"
                 placeholder="Detail what is included with the account..."
               />
             </div>
@@ -287,7 +290,7 @@ export default function CreateListingWizardPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full rounded-xl border border-border bg-muted/20 px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-brand"
+                className="w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-brand"
                 placeholder="Login username"
               />
             </div>
@@ -299,7 +302,7 @@ export default function CreateListingWizardPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-border bg-muted/20 px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-brand"
+                className="w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-brand"
                 placeholder="Account password"
               />
             </div>
@@ -311,7 +314,7 @@ export default function CreateListingWizardPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-border bg-muted/20 px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-brand"
+                className="w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-brand"
                 placeholder="original.email@domain.com"
               />
             </div>
@@ -323,7 +326,7 @@ export default function CreateListingWizardPage() {
                 type="text"
                 value={securityKeys}
                 onChange={(e) => setSecurityKeys(e.target.value)}
-                className="w-full rounded-xl border border-border bg-muted/20 px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-brand"
+                className="w-full rounded-xl border border-border bg-muted px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-brand"
                 placeholder="Optional backup code"
               />
             </div>
@@ -335,7 +338,7 @@ export default function CreateListingWizardPage() {
       {currentStep === 4 && (
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
           <h2 className="text-sm font-bold text-foreground">Review & Commit to Escrow</h2>
-          <div className="rounded-xl border border-border/80 bg-muted/20 p-4 space-y-2 text-xs">
+          <div className="rounded-xl border border-border/80 bg-muted p-4 space-y-2 text-xs">
             <div className="flex justify-between"><span className="text-muted-foreground">Game:</span> <span className="font-bold text-foreground">{selectedGame}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Title:</span> <span className="font-bold text-foreground">{title}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Rank:</span> <span className="font-bold text-foreground">{rank}</span></div>

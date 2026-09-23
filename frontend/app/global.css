@@ -8,6 +8,7 @@
    LIGHT MODE (default) — pure white base, dark charcoal text
    ============================================================ */
 :root {
+  color-scheme: light;
   --bg: #f8fafc;
   --fg: #090d16;
   --card: #ffffff;
@@ -25,14 +26,15 @@
    DARK MODE — sleek obsidian background, off-white text
    ============================================================ */
 .dark {
+  color-scheme: dark;
   --bg: #080b11;
   --fg: #f3f4f6;
   --card: #0d111a;
   --card-border: rgba(255, 255, 255, 0.055);
   --muted-bg: #121723;
   --muted-fg: #94a3b8;
-  --input-bg: rgba(255, 255, 255, 0.025);
-  --input-border: rgba(255, 255, 255, 0.06);
+  --input-bg: #121723;
+  --input-border: rgba(255, 255, 255, 0.1);
   --brand: #00E575;
   --brand-neon: #00E575;
   --brand-hover: #00C25E;
@@ -152,6 +154,20 @@ body {
 }
 .ge-select:focus {
   border-color: var(--brand);
+}
+.ge-select option,
+select option {
+  background-color: var(--card);
+  color: var(--fg);
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+textarea {
+  background-color: var(--input-bg);
+  color: var(--fg);
 }
 
 /* ============================================================

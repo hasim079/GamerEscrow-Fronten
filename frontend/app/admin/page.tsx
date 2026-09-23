@@ -165,14 +165,15 @@ export default function AdminPage() {
   if (!session) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <div className="rounded-2xl border border-border bg-card p-12 text-center">
-          <LogIn className="mx-auto size-12 text-muted-foreground mb-4 opacity-50" />
+        <div className="rounded-2xl border-2 border-brand/40 bg-card p-12 text-center shadow-lg">
+          <LogIn className="mx-auto size-12 text-brand mb-4 opacity-80" />
           <h2 className="text-xl font-bold text-foreground">Admin Login Required</h2>
           <p className="mt-2 text-sm text-muted-foreground mb-6">Step 1: Please log in with your Google account.</p>
           <button
             onClick={handleGoogleLogin}
-            className="inline-flex items-center gap-2 rounded-xl bg-foreground px-6 py-3 text-sm font-bold text-background hover:bg-muted-foreground transition-all"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand border-2 border-emerald-300 dark:border-emerald-400 px-6 py-3 text-sm font-bold text-black hover:bg-brand-hover active:scale-[0.98] transition-all shadow-md"
           >
+            <LogIn className="size-4" />
             Sign in with Google
           </button>
         </div>
@@ -183,7 +184,7 @@ export default function AdminPage() {
   if (!publicKey) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <div className="rounded-2xl border border-border bg-card p-12 text-center">
+        <div className="rounded-2xl border-2 border-brand/40 bg-card p-12 text-center shadow-lg">
           <Shield className="mx-auto size-12 text-brand mb-4" />
           <h2 className="text-xl font-bold text-foreground">Wallet Connection Required</h2>
           <p className="mt-2 text-sm text-muted-foreground mb-6">Step 2: Authenticated as {session.user.email}. Now connect your admin wallet.</p>

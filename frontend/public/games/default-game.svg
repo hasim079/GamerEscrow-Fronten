@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0e17" />
+      <stop offset="50%" stop-color="#121826" />
+      <stop offset="100%" stop-color="#0d111a" />
+    </linearGradient>
+    <linearGradient id="neon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00DC6C" />
+      <stop offset="100%" stop-color="#00E575" />
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
+    </pattern>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)" />
+  <rect width="800" height="450" fill="url(#grid)" />
+  <circle cx="400" cy="210" r="90" fill="rgba(0, 220, 108, 0.06)" />
+  <g transform="translate(400, 200) scale(1.6)">
+    <!-- Gamepad / Shield Icon -->
+    <path d="M-28 -14 C-28 -28, 28 -28, 28 -14 C28 14, 18 36, 0 44 C-18 36, -28 14, -28 -14 Z" fill="none" stroke="url(#neon)" stroke-width="3" stroke-linejoin="round" />
+    <polygon points="-8,4 0,-12 8,4" fill="url(#neon)" />
+    <circle cx="0" cy="18" r="3" fill="#00E575" />
+  </g>
+  <text x="400" y="305" font-family="'Inter', system-ui, sans-serif" font-weight="700" font-size="22" fill="#f3f4f6" text-anchor="middle" letter-spacing="3">GAMER ESCROW</text>
+  <text x="400" y="332" font-family="'Inter', system-ui, sans-serif" font-weight="500" font-size="13" fill="#64748b" text-anchor="middle" letter-spacing="1.5">SECURE GAME ASSET</text>
+</svg>

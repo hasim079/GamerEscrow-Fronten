@@ -23,7 +23,6 @@ export function Navbar() {
     { name: 'Create Listing', href: '/create-listing' },
     { name: 'Dashboard', href: '/seller' },
     { name: 'Orders', href: '/orders' },
-    { name: 'Admin', href: '/admin' },
   ];
 
   const isNavActive = (href: string) => {
@@ -89,7 +88,7 @@ export function Navbar() {
                   >
                     {item.name}
                     {isActive && (
-                      <span className="absolute -bottom-[21px] left-0 h-0.5 w-full rounded-full bg-brand" />
+                      <span className="absolute -bottom-[21px] left-0 h-1 w-full rounded-full bg-brand shadow-sm shadow-brand/50" />
                     )}
                   </Link>
                 );
@@ -120,7 +119,6 @@ export function Navbar() {
               <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-mono font-semibold text-foreground shadow-sm">
                 <span className="size-1.5 rounded-full bg-brand" />
                 <span>{walletAddress}</span>
-                <span className="text-muted-foreground font-sans">42.8 SOL</span>
                 <button
                   type="button"
                   onClick={handleCopyWallet}

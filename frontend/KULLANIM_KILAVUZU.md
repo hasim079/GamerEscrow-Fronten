@@ -24,33 +24,14 @@ Dosya: `app/create-listing/page.tsx`
 14. satırda `GAME_OPTIONS` dizisi yer alır. Buraya yeni oyununuzu (örneğin Valorant veya GTA V) ekleyebilirsiniz:
 
 ```typescript
-// app/create-listing/page.tsx (Satır 14-45 civarı)
+// app/create-listing/page.tsx
 const GAME_OPTIONS: GameOption[] = [
-  // MEVCUT OYUNLAR:
-  {
-    id: 'vanguard-strike',
-    name: 'Vanguard Strike',
-    image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 'aethermoor',
-    name: 'Aethermoor',
-    image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=400&q=80',
-  },
-  // ... diğer oyunlar ...
-
-  // +++ YENİ EKLENECEK OYUN (Örnek: Valorant) +++
-  {
-    id: 'valorant',
-    name: 'Valorant',
-    image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400&q=80', // Veya istediğiniz bir görsel linki
-  },
-  // +++ Başka bir oyun örneği (Örnek: Counter-Strike 2) +++
-  {
-    id: 'cs2',
-    name: 'Counter-Strike 2',
-    image: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=400&q=80',
-  },
+  { id: 'valorant', name: 'VALORANT', image: '/images/valorant.jpg' },
+  { id: 'fortnite', name: 'Fortnite', image: '/images/fortnite.jpg' },
+  { id: 'lol', name: 'League of Legends', image: '/images/lol.jpg' },
+  { id: 'cs2', name: 'Counter-Strike 2 (CS2)', image: '/images/cs2.jpg' },
+  { id: 'ea-sports-fc-26', name: 'EA Sports FC 26', image: '/images/fc26.jpg' },
+  { id: 'pubg', name: 'PUBG: BATTLEGROUNDS', image: '/images/pubg.jpg' },
 ];
 ```
 

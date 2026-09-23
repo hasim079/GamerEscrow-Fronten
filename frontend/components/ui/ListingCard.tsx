@@ -10,15 +10,46 @@ interface ListingCardProps {
   onBuyClick?: (listing: Listing) => void;
 }
 
+const GAME_DEFAULT_IMAGES: Record<string, string> = {
+  'VALORANT': '/images/valorant.jpg',
+  'Valorant': '/images/valorant.jpg',
+  'Fortnite': '/images/fortnite.jpg',
+  'League of Legends': '/images/lol.jpg',
+  'LoL': '/images/lol.jpg',
+  'Counter-Strike 2 (CS2)': '/images/cs2.jpg',
+  'Counter-Strike 2': '/images/cs2.jpg',
+  'CS2': '/images/cs2.jpg',
+  'EA Sports FC 26': '/images/fc26.jpg',
+  'EA Sports FC': '/images/fc26.jpg',
+  'PUBG: BATTLEGROUNDS': '/images/pubg.jpg',
+  'PUBG': '/images/pubg.jpg',
+  // Fallbacks for legacy mock/database items
+  'Vanguard Strike': '/images/valorant.jpg',
+  'Aethermoor': '/images/lol.jpg',
+  'Dropzone 99': '/images/pubg.jpg',
+  'Velocity X': '/images/fc26.jpg',
+  'Void Command': '/images/cs2.jpg',
+  'Ashen Realm': '/images/fortnite.jpg',
+};
+
 export function ListingCard({ listing, onBuyClick }: ListingCardProps) {
+  const imageSrc =
+    (listing as any).image_url ||
+    listing.image ||
+    GAME_DEFAULT_IMAGES[listing.game] ||
+    '/images/default-game.svg';
+
   return (
     <div className="ge-card" style={{ display: 'flex', flexDirection: 'column' }}>
       {/* Image */}
       <div style={{ position: 'relative', aspectRatio: '16/9', overflow: 'hidden', backgroundColor: 'var(--muted-bg)' }}>
         <img
-          src={(listing as any).image_url || listing.image || 'https://via.placeholder.com/400x225?text=No+Image'}
+          src={imageSrc}
           alt={listing.title}
           loading="lazy"
+          onError={(e) => {
+            e.currentTarget.src = '/images/default-game.svg';
+          }}
           style={{
             width: '100%',
             height: '100%',

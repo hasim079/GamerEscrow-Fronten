@@ -10,6 +10,8 @@ export interface ListingRecord {
   game: string;
   game_slug?: string;
   category?: string;
+  image?: string;
+  image_url?: string;
   price_sol: number;
   price_usd?: number;
   data_hash: string;
