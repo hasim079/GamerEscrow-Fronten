@@ -5,6 +5,15 @@ import Link from 'next/link';
 import { Star, BadgeCheck } from 'lucide-react';
 import { Listing } from '../../mock/mockData';
 
+const GAME_IMAGES: Record<string, string> = {
+  'Vanguard Strike': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400&q=80',
+  'Aethermoor': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=400&q=80',
+  'Dropzone 99': 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=400&q=80',
+  'Velocity X': 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=400&q=80',
+  'Void Command': 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80',
+  'Ashen Realm': 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=400&q=80',
+};
+
 interface ListingCardProps {
   listing: Listing;
   onBuyClick?: (listing: Listing) => void;
@@ -33,11 +42,12 @@ const GAME_DEFAULT_IMAGES: Record<string, string> = {
 };
 
 export function ListingCard({ listing, onBuyClick }: ListingCardProps) {
+  const gameImageFallback = GAME_IMAGES[listing.game] || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400&q=80';
   const imageSrc =
     (listing as any).image_url ||
     listing.image ||
     GAME_DEFAULT_IMAGES[listing.game] ||
-    '/images/default-game.svg';
+    gameImageFallback;
 
   return (
     <div className="ge-card" style={{ display: 'flex', flexDirection: 'column' }}>

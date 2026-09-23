@@ -34,6 +34,8 @@ export interface DisputeRecord {
   reason: string;
   details?: string;
   evidence_urls?: string[];
+  seller_response?: string;
+  seller_evidence_urls?: string[];
   status: "Open" | "UnderReview" | "Resolved_Refunded" | "Resolved_Released" | "Dismissed";
   resolution?: string;
   resolved_by?: string;
@@ -269,6 +271,61 @@ export async function createDisputeRecord(
 /**
  * Request credentials decryption from Supabase Edge Function via wallet Ed25519 signature.
  */
+
+/**
+ * Update a dispute with seller's response and evidence.
+ */
+export async function updateDisputeSellerResponse(
+  disputeId: string,
+  sellerResponse: string,
+  sellerEvidenceUrls?: string[]
+): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("disputes")
+      .update({
+        seller_response: sellerResponse,
+        seller_evidence_urls: sellerEvidenceUrls || [],
+        status: "UnderReview",
+      })
+      .eq("id", disputeId);
+
+    if (error) {
+      console.error("[supabase] updateDisputeSellerResponse error:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[supabase] Error updating dispute seller response:", err);
+    return false;
+  }
+}
+
+/**
+ * Fetch disputes for a specific listing (used by seller to see if their listing has a dispute).
+ */
+export async function fetchDisputesByListing(
+  listingId: string
+): Promise<DisputeRecord | null> {
+  try {
+    const { data, error } = await supabase
+      .from("disputes")
+      .select("*")
+      .eq("listing_id", listingId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.warn("[supabase] fetchDisputesByListing warning:", error.message);
+      return null;
+    }
+    return data as DisputeRecord | null;
+  } catch (err) {
+    console.error("[supabase] Error fetching dispute by listing:", err);
+    return null;
+  }
+}
 export async function requestCredentialsDecryption(
   listingId: string,
   buyerPubkey: string,

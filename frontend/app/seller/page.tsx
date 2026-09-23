@@ -4,8 +4,10 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Plus, Link as LinkIcon, Package, Clock, TrendingUp, Upload, CheckCircle2 } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { fetchSellerListings, ListingRecord } from '../../lib/supabaseClient';
+import { fetchSellerListings, ListingRecord, fetchDisputesByListing, updateDisputeSellerResponse, DisputeRecord, supabase } from '../../lib/supabaseClient';
 import { PublishingWizardModal } from '../../components/modals/PublishingWizardModal';
+import { SellerDisputeResponseModal } from '../../components/modals/SellerDisputeResponseModal';
+import { AlertTriangle } from 'lucide-react';
 
 export default function SellerDashboardPage() {
   const [activeTab, setActiveTab] = useState<'drafts' | 'active' | 'escrow' | 'completed'>('drafts');
@@ -13,6 +15,10 @@ export default function SellerDashboardPage() {
   const [dbListings, setDbListings] = useState<ListingRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [publishingDraft, setPublishingDraft] = useState<ListingRecord | null>(null);
+  
+  // Dispute Handling States
+  const [respondingListing, setRespondingListing] = useState<ListingRecord | null>(null);
+  const [activeDispute, setActiveDispute] = useState<DisputeRecord | null>(null);
   const { publicKey } = useWallet();
 
   useEffect(() => {
@@ -30,10 +36,49 @@ export default function SellerDashboardPage() {
     setPublishingDraft(draft);
   };
 
+  const handleRespondDisputeClick = async (listing: ListingRecord) => {
+    const dispute = await fetchDisputesByListing(listing.id);
+    if (dispute) {
+      setActiveDispute(dispute);
+      setRespondingListing(listing);
+    } else {
+      alert("No active dispute found in the database for this listing.");
+    }
+  };
+
+  const handleSubmitDisputeResponse = async (response: string, file: File | null) => {
+    if (!activeDispute) return;
+    
+    let evidenceUrl = '';
+    if (file) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${activeDispute.id}_seller_${Date.now()}.${fileExt}`;
+      const { data, error } = await supabase.storage.from('disputes').upload(fileName, file);
+      if (!error && data) {
+        const { data: { publicUrl } } = supabase.storage.from('disputes').getPublicUrl(data.path);
+        evidenceUrl = publicUrl;
+      } else {
+        console.warn('File upload failed', error);
+      }
+    }
+    
+    const success = await updateDisputeSellerResponse(
+      activeDispute.id,
+      response,
+      evidenceUrl ? [evidenceUrl] : undefined
+    );
+    
+    if (success) {
+      alert("Your response has been submitted successfully.");
+    } else {
+      alert("Failed to submit response.");
+    }
+  };
+
   // Derived lists by status
   const draftListings = dbListings.filter((l) => l.status === 'Draft');
   const activeListings = dbListings.filter((l) => l.status === 'Listed');
-  const escrowListings = dbListings.filter((l) => l.status === 'InEscrow');
+  const escrowListings = dbListings.filter((l) => l.status === 'InEscrow' || l.status === 'InDispute');
   const completedListings = dbListings.filter((l) => l.status === 'Completed');
   const totalEarnings = completedListings.reduce((sum, l) => sum + l.price_sol, 0);
   const escrowTotal = escrowListings.reduce((sum, l) => sum + l.price_sol, 0);
@@ -251,20 +296,47 @@ export default function SellerDashboardPage() {
             </div>
           ) : (
             escrowListings.map((order) => (
-              <div key={order.id} className="flex items-center justify-between rounded-2xl border border-brand/20 bg-card p-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-brand">{order.id.slice(0, 8)}…</span>
-                    <span className="text-xs font-bold text-foreground">{order.title}</span>
+              <div key={order.id} className="flex flex-col gap-3 rounded-2xl border border-brand/20 bg-card p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-brand">{order.id.slice(0, 8)}…</span>
+                      <span className="text-xs font-bold text-foreground">{order.title}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Buyer: {order.buyer_pubkey ? `${order.buyer_pubkey.slice(0, 6)}…` : '—'} · Vault: {order.vault_pda ?? '—'}
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    Buyyer: {order.buyer_pubkey ? `${order.buyer_pubkey.slice(0, 6)}…` : '—'} · Vault: {order.vault_pda ?? '—'}
+                  <div className="text-right">
+                    <div className="font-mono text-sm font-extrabold text-foreground">{order.price_sol} SOL</div>
+                    {order.status === 'InDispute' ? (
+                      <span className="text-xs font-bold text-rose-500 uppercase mt-1 inline-block">Disputed</span>
+                    ) : (
+                      <Link href="/orders" className="text-xs text-brand hover:underline font-semibold">Follow →</Link>
+                    )}
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="font-mono text-sm font-extrabold text-foreground">{order.price_sol} SOL</div>
-                  <Link href="/orders" className="text-xs text-brand hover:underline font-semibold">Follow →</Link>
-                </div>
+                
+                {/* Dispute Alert Block */}
+                {order.status === 'InDispute' && (
+                  <div className="mt-2 rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="size-5 text-rose-500 shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="text-sm font-bold text-rose-500">Buyer Opened a Dispute!</h4>
+                        <p className="text-xs text-rose-500/80 mt-1 max-w-lg">
+                          Vault funds are locked. Please provide your counter-evidence so our moderators can review both sides fairly.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleRespondDisputeClick(order)}
+                      className="shrink-0 rounded-xl bg-rose-500 px-5 py-2.5 text-xs font-bold text-white hover:bg-rose-600 transition-all shadow-sm"
+                    >
+                      Upload Evidence
+                    </button>
+                  </div>
+                )}
               </div>
             ))
           )}
@@ -323,6 +395,20 @@ export default function SellerDashboardPage() {
             description: publishingDraft.description,
             rank: publishingDraft.rank,
           }}
+        />
+      )}
+
+      {activeDispute && respondingListing && (
+        <SellerDisputeResponseModal
+          isOpen={!!activeDispute}
+          onClose={() => {
+            setActiveDispute(null);
+            setRespondingListing(null);
+          }}
+          onSubmit={handleSubmitDisputeResponse}
+          disputeReason={activeDispute.reason}
+          buyerClaim={activeDispute.details || ''}
+          listingTitle={respondingListing.title}
         />
       )}
     </div>

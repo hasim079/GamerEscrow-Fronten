@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { fetchBuyerOrders, ListingRecord, updateListingStatus } from '../../lib/supabaseClient';
+import { fetchBuyerOrders, ListingRecord, updateListingStatus, createDisputeRecord } from '../../lib/supabaseClient';
 import { Transaction, PublicKey } from '@solana/web3.js';
 import { buildReleaseFundsInstruction, buildOpenDisputeInstruction } from '../../lib/anchorClient';
 import { Stepper } from '../../components/ui/Stepper';
@@ -79,6 +79,13 @@ export default function OrdersPage() {
       const signature = await sendTransaction(tx, connection);
       await connection.confirmTransaction({ signature, blockhash: latestBlockhash.blockhash, lastValidBlockHeight: latestBlockhash.lastValidBlockHeight }, 'confirmed');
       await updateListingStatus(selectedOrder.id, 'InDispute');
+      await createDisputeRecord({
+        listing_id: selectedOrder.id,
+        initiator_pubkey: publicKey.toBase58(),
+        reason: reason,
+        details: details,
+        status: "Open"
+      });
       const updated = { ...selectedOrder, status: 'InDispute' as const };
       setSelectedOrder(updated);
       setOrdersList((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
