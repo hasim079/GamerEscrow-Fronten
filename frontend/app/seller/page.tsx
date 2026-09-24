@@ -33,11 +33,17 @@ export default function SellerDashboardPage() {
   }, [publicKey]);
 
   const handlePublish = (draft: ListingRecord) => {
+    // Draft'ta gerçek credential yoksa (eski placeholder verili kayıtlar) kullanıcıyı uyar
+    if (!draft.encrypted_credentials || draft.encrypted_credentials === 'draft_no_credentials') {
+      alert('This draft has no encrypted credentials. Please re-create the listing with account credentials before publishing.');
+      return;
+    }
     setPublishingDraft(draft);
   };
 
   const handleRespondDisputeClick = async (listing: ListingRecord) => {
-    const dispute = await fetchDisputesByListing(listing.id);
+    if (!publicKey) return;
+    const dispute = await fetchDisputesByListing(listing.id, publicKey.toBase58());
     if (dispute) {
       setActiveDispute(dispute);
       setRespondingListing(listing);
@@ -47,7 +53,7 @@ export default function SellerDashboardPage() {
   };
 
   const handleSubmitDisputeResponse = async (response: string, file: File | null) => {
-    if (!activeDispute) return;
+    if (!activeDispute || !publicKey) return;
     
     let evidenceUrl = '';
     if (file) {
@@ -65,7 +71,8 @@ export default function SellerDashboardPage() {
     const success = await updateDisputeSellerResponse(
       activeDispute.id,
       response,
-      evidenceUrl ? [evidenceUrl] : undefined
+      evidenceUrl ? [evidenceUrl] : undefined,
+      publicKey.toBase58()
     );
     
     if (success) {

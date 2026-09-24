@@ -47,7 +47,7 @@ export function DecryptBox({
           if (result.success && result.encryptedCredentials) {
             console.log('[DecryptBox] Successfully verified via Edge Function Ed25519 signature!');
             try {
-              const parsed = decryptCredentials(result.encryptedCredentials, "gamer_escrow_secret_key");
+              const parsed = decryptCredentials(result.encryptedCredentials, "gamer_escrow_secret_key");       
               if (parsed.username) setRealUser(parsed.username);
               if (parsed.password) setRealPass(parsed.password);
               if (parsed.email) setRealEmail(parsed.email);

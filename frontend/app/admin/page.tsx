@@ -10,6 +10,7 @@ import { buildResolveDisputeInstruction } from '../../lib/anchorClient';
 
 export interface DisputeItem {
   id: string;
+  listingId: string;
   orderId: string;
   item: string;
   parties: string;
@@ -73,16 +74,19 @@ export default function AdminPage() {
         setIsAuthorized(hasAccess);
 
         if (hasAccess) {
-          const fetchedDisputes = await fetchDisputes();
+          const fetchedDisputes = await fetchDisputes(undefined, true);
           if (fetchedDisputes && fetchedDisputes.length > 0) {
             const mappedDisputes: DisputeItem[] = fetchedDisputes.map((d: any) => ({
               id: d.id,
-              orderId: d.listing_id ? `#${d.listing_id.slice(0, 4)}` : `#${d.id.slice(0, 4)}`,
+              listingId: d.listing_id || '',
+              orderId: d.listing_id ? `#${d.listing_id.slice(0, 8)}` : `#${d.id.slice(0, 8)}`,
               item: d.listings?.title || 'Escrow Item',
               parties: `${d.initiator_pubkey ? d.initiator_pubkey.slice(0, 4) : 'User'} vs ${d.listings?.seller_pubkey ? d.listings?.seller_pubkey.slice(0, 4) : 'Seller'}`,
               claim: d.reason || 'No description provided.',
               amount: `${d.listings?.price_sol || 0} SOL`,
-              status: d.status === 'Open' ? 'Pending Review' : 'Resolved - Released',
+              status: d.status === 'Open' || d.status === 'UnderReview' ? 'Pending Review' 
+                : d.status === 'Resolved_Refunded' ? 'Resolved - Refunded' 
+                : 'Resolved - Released',
               buyerProof: { text: d.details || d.reason || 'No proof provided.', image: (d.evidence_urls && d.evidence_urls.length > 0) ? d.evidence_urls[0] : undefined },
               sellerProof: { 
                 text: d.seller_response || 'Waiting for seller response.',
@@ -108,19 +112,29 @@ export default function AdminPage() {
   const handleArbitrationAction = async (action: 'Refund Buyer' | 'Release to Seller') => {
     if (!selectedDispute) return;
     setIsProcessing(true);
+    setResolutionMessage(null);
     try {
       if (publicKey && sendTransaction) {
+        let winnerKey: PublicKey;
+        let listingKey: PublicKey;
+
+        try {
+          const winnerAddress = action === 'Refund Buyer' ? selectedDispute.buyerAddress : selectedDispute.sellerAddress;
+          if (!winnerAddress) throw new Error("Kazanan tarafın cüzdan adresi eksik (Veritabanı hatası).");
+          winnerKey = new PublicKey(winnerAddress);
+
+          if (!selectedDispute.vaultAddress || selectedDispute.vaultAddress.length < 32) {
+            throw new Error("Geçerli bir Escrow (Listing PDA) adresi bulunamadı. İşlem on-chain'e gönderilemez.");
+          }
+          listingKey = new PublicKey(selectedDispute.vaultAddress);
+        } catch (pubkeyErr: any) {
+          alert(`Adres doğrulama hatası: ${pubkeyErr.message}`);
+          setIsProcessing(false);
+          return;
+        }
+
         try {
           const winnerIsBuyer = action === 'Refund Buyer';
-          const winnerKey = new PublicKey(
-            winnerIsBuyer ? selectedDispute.buyerAddress : selectedDispute.sellerAddress
-          );
-          const listingKey = new PublicKey(
-            selectedDispute.vaultAddress && selectedDispute.vaultAddress.length >= 32
-              ? selectedDispute.vaultAddress
-              : publicKey.toBase58()
-          );
-
           const ix = await buildResolveDisputeInstruction(publicKey, winnerKey, listingKey, winnerIsBuyer);
           const tx = new Transaction().add(ix);
           const latest = await connection.getLatestBlockhash('confirmed');
@@ -133,16 +147,17 @@ export default function AdminPage() {
           const newListingStatus = action === 'Refund Buyer' ? 'Cancelled' : 'Completed';
           const newDisputeStatus = action === 'Refund Buyer' ? 'Resolved_Refunded' : 'Resolved_Released';
           
-          await updateListingStatus(selectedDispute.orderId, newListingStatus as any);
+          await updateListingStatus(selectedDispute.listingId, newListingStatus as any);
           await supabase.from('disputes').update({ status: newDisputeStatus }).eq('id', selectedDispute.id);
 
           const newUiStatus = action === 'Refund Buyer' ? 'Resolved - Refunded' : 'Resolved - Released';
           const updated = { ...selectedDispute, status: newUiStatus as any };
           setDisputes((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
           setSelectedDispute(updated);
-          setResolutionMessage(`Dispute resolved: ${action}`);
-        } catch (chainErr) {
-          console.warn('On-chain fallback:', chainErr);
+          setResolutionMessage(`Dispute resolved successfully on-chain: ${action}`);
+        } catch (chainErr: any) {
+          console.error('On-chain transaction error:', chainErr);
+          alert(`Solana İşlem Hatası: ${chainErr.message || 'Bilinmeyen bir hata oluştu.'}`);
         }
       }
     } finally {

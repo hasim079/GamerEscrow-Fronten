@@ -1,4 +1,4 @@
-﻿-- ============================================================================
+-- ============================================================================
 -- GAMERESCROW SUPABASE SCHEMA & RLS POLICIES
 -- ============================================================================
 
@@ -77,6 +77,8 @@ CREATE TABLE IF NOT EXISTS disputes (
     reason TEXT NOT NULL,
     details TEXT,
     evidence_urls TEXT[] DEFAULT '{}',
+    seller_response TEXT,
+    seller_evidence_urls TEXT[] DEFAULT '{}',
     status dispute_status NOT NULL DEFAULT 'Open',
     resolution TEXT,
     resolved_by TEXT,
@@ -209,6 +211,27 @@ CREATE POLICY "Users can create dispute"
 CREATE POLICY "Service role full access on disputes"
     ON disputes FOR ALL
     USING (auth.jwt() ->> 'role' = 'service_role');
+
+-- 5. Sellers can update disputes on their listings (to submit seller_response)
+CREATE POLICY "Sellers can update dispute response"
+    ON disputes FOR UPDATE
+    USING (
+        EXISTS (
+            SELECT 1 FROM listings l
+            WHERE l.id = disputes.listing_id
+            AND l.seller_pubkey = (current_setting('request.headers', true)::json ->> 'x-wallet-address')
+        )
+    );
+
+-- 6. Admins can update all disputes (for resolution)
+CREATE POLICY "Admins can update all disputes"
+    ON disputes FOR UPDATE
+    USING (
+        EXISTS (
+            SELECT 1 FROM admin_whitelist aw
+            WHERE aw.wallet_pubkey = (current_setting('request.headers', true)::json ->> 'x-wallet-address')
+        )
+    );
 
 -- 6. SAFE PUBLIC VIEW (Omits encrypted_credentials for zero-leakage storefront)
 CREATE OR REPLACE VIEW public_listings_view AS

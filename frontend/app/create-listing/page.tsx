@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Check, ShieldCheck, ArrowRight, ArrowLeft, Lock, KeyRound } from 'lucide-react';
 import { PublishingWizardModal } from '../../components/modals/PublishingWizardModal';
 import { createListingRecord } from '../../lib/supabaseClient';
+import { encryptCredentials } from '../../lib/crypto';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 interface GameOption {
@@ -71,14 +72,38 @@ export default function CreateListingWizardPage() {
     if (!publicKey) return alert("Please connect wallet first.");
     setIsSavingDraft(true);
     try {
+      const credentialsData = {
+        username,
+        password,
+        email,
+        securityKeys,
+        game: selectedGame,
+        description,
+        rank,
+      };
+
+      // Credential'lar girilmişse şifrele, girilmemişse placeholder bırak
+      const hasCredentials = username || password || email || securityKeys;
+      let data_hash = "draft_no_hash";
+      let encrypted_credentials = "draft_no_credentials";
+      let encryption_iv: string | undefined = undefined;
+
+      if (hasCredentials) {
+        const encrypted = encryptCredentials(credentialsData, "gamer_escrow_secret_key");
+        data_hash = encrypted.dataHashHex;
+        encrypted_credentials = encrypted.ciphertext;
+        encryption_iv = encrypted.iv;
+      }
+
       await createListingRecord({
         seller_pubkey: publicKey.toBase58(),
         buyer_pubkey: null,
         title,
         game: selectedGame,
         price_sol: parseFloat(priceSol) || 0,
-        data_hash: "draft_no_hash",
-        encrypted_credentials: "draft_no_credentials",
+        data_hash,
+        encrypted_credentials,
+        encryption_iv,
         status: "Draft",
         rank,
         description,

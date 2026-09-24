@@ -51,6 +51,21 @@ const supabaseAnonKey =
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
+ * Creates a Supabase client that injects the user's wallet address into the headers
+ * so that Row Level Security (RLS) policies can correctly identify the user.
+ */
+export function getAuthClient(walletPubkey?: string) {
+  if (!walletPubkey) return supabase;
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers: {
+        "x-wallet-address": walletPubkey,
+      },
+    },
+  });
+}
+
+/**
  * Fetch all publicly available listings currently listed in the marketplace.
  */
 export async function fetchMarketplaceListings(): Promise<ListingRecord[]> {
@@ -77,7 +92,8 @@ export async function fetchMarketplaceListings(): Promise<ListingRecord[]> {
  */
 export async function fetchSellerListings(sellerPubkey: string): Promise<ListingRecord[]> {
   try {
-    const { data, error } = await supabase
+    const client = getAuthClient(sellerPubkey);
+    const { data, error } = await client
       .from("listings")
       .select("*")
       .eq("seller_pubkey", sellerPubkey)
@@ -99,7 +115,8 @@ export async function fetchSellerListings(sellerPubkey: string): Promise<Listing
  */
 export async function fetchBuyerOrders(buyerPubkey: string): Promise<ListingRecord[]> {
   try {
-    const { data, error } = await supabase
+    const client = getAuthClient(buyerPubkey);
+    const { data, error } = await client
       .from("listings")
       .select("*")
       .eq("buyer_pubkey", buyerPubkey)
@@ -145,7 +162,8 @@ export async function createListingRecord(
   payload: Omit<ListingRecord, "id" | "created_at" | "updated_at">
 ): Promise<ListingRecord | null> {
   try {
-    const { data, error } = await supabase
+    const client = getAuthClient(payload.seller_pubkey);
+    const { data, error } = await client
       .from("listings")
       .insert([payload])
       .select()
@@ -199,8 +217,9 @@ export async function checkIsAdmin(walletPubkey: string): Promise<boolean> {
   try {
     // Cüzdan adresindeki olası boşlukları temizle
     const cleanPubkey = walletPubkey.trim();
+    const client = getAuthClient(cleanPubkey);
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from("admin_whitelist")
       .select("role")
       .eq("wallet_pubkey", cleanPubkey)
@@ -226,7 +245,8 @@ export async function fetchDisputes(
   isAdmin: boolean = false
 ): Promise<DisputeRecord[]> {
   try {
-    let query = supabase.from("disputes").select("*, listings(*)");
+    const client = getAuthClient(walletPubkey);
+    let query = client.from("disputes").select("*, listings(*)");
 
     if (!isAdmin && walletPubkey) {
       query = query.eq("initiator_pubkey", walletPubkey);
@@ -251,7 +271,8 @@ export async function createDisputeRecord(
   payload: Omit<DisputeRecord, "id" | "created_at" | "updated_at">
 ): Promise<DisputeRecord | null> {
   try {
-    const { data, error } = await supabase
+    const client = getAuthClient(payload.initiator_pubkey);
+    const { data, error } = await client
       .from("disputes")
       .insert([payload])
       .select()
@@ -278,10 +299,12 @@ export async function createDisputeRecord(
 export async function updateDisputeSellerResponse(
   disputeId: string,
   sellerResponse: string,
-  sellerEvidenceUrls?: string[]
+  sellerEvidenceUrls?: string[],
+  walletPubkey?: string
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const client = getAuthClient(walletPubkey);
+    const { error } = await client
       .from("disputes")
       .update({
         seller_response: sellerResponse,
@@ -305,10 +328,12 @@ export async function updateDisputeSellerResponse(
  * Fetch disputes for a specific listing (used by seller to see if their listing has a dispute).
  */
 export async function fetchDisputesByListing(
-  listingId: string
+  listingId: string,
+  walletPubkey?: string
 ): Promise<DisputeRecord | null> {
   try {
-    const { data, error } = await supabase
+    const client = getAuthClient(walletPubkey);
+    const { data, error } = await client
       .from("disputes")
       .select("*")
       .eq("listing_id", listingId)

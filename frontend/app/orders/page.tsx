@@ -66,7 +66,7 @@ export default function OrdersPage() {
     }
   };
 
-  const handleDisputeSubmit = async (reason: string, details: string) => {
+  const handleDisputeSubmit = async (reason: string, details: string, file: File | null) => {
     if (!selectedOrder || !publicKey || !sendTransaction) return;
     try {
       if (!selectedOrder.escrow_pda) throw new Error("Missing PDA");
@@ -79,11 +79,27 @@ export default function OrdersPage() {
       const signature = await sendTransaction(tx, connection);
       await connection.confirmTransaction({ signature, blockhash: latestBlockhash.blockhash, lastValidBlockHeight: latestBlockhash.lastValidBlockHeight }, 'confirmed');
       await updateListingStatus(selectedOrder.id, 'InDispute');
+
+      let evidenceUrl = '';
+      if (file) {
+        const { supabase } = await import('../../lib/supabaseClient');
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${selectedOrder.id}_${Date.now()}.${fileExt}`;
+        const { data, error } = await supabase.storage.from('disputes').upload(fileName, file);
+        if (!error && data) {
+          const { data: { publicUrl } } = supabase.storage.from('disputes').getPublicUrl(data.path);
+          evidenceUrl = publicUrl;
+        } else {
+          console.warn('File upload failed', error);
+        }
+      }
+
       await createDisputeRecord({
         listing_id: selectedOrder.id,
         initiator_pubkey: publicKey.toBase58(),
         reason: reason,
         details: details,
+        evidence_urls: evidenceUrl ? [evidenceUrl] : undefined,
         status: "Open"
       });
       const updated = { ...selectedOrder, status: 'InDispute' as const };
