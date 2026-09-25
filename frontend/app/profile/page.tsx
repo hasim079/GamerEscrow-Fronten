@@ -14,7 +14,7 @@ export default function ProfilePage() {
   const [myOrders, setMyOrders] = useState<ListingRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const displayAddress = publicKey ? publicKey.toBase58() : 'Cüzdan bağlı değil';
+  const displayAddress = publicKey ? publicKey.toBase58() : 'Wallet not connected';
   const shortAddress = publicKey
     ? `${publicKey.toBase58().slice(0, 6)}...${publicKey.toBase58().slice(-4)}`
     : '—';
@@ -99,7 +99,7 @@ export default function ProfilePage() {
         <div className="flex gap-6">
           <button type="button" onClick={() => setActiveTab('listings')}
             className={`border-b-2 pb-3 text-xs font-bold transition-colors ${activeTab === 'listings' ? 'border-brand text-brand' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
-            Aktif İlanlarım ({loading ? '…' : activeListings.length})
+            Active Listings ({loading ? '…' : activeListings.length})
           </button>
           <button type="button" onClick={() => setActiveTab('orders')}
             className={`border-b-2 pb-3 text-xs font-bold transition-colors ${activeTab === 'orders' ? 'border-brand text-brand' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
@@ -120,7 +120,7 @@ export default function ProfilePage() {
           ) : activeListings.length === 0 ? (
             <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
               There are no active Listings yet.{' '}
-              <Link href="/create-listing" className="text-brand font-semibold hover:underline">İlan oluştur →</Link>
+              <Link href="/create-listing" className="text-brand font-semibold hover:underline">Create listing →</Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -157,7 +157,7 @@ export default function ProfilePage() {
                     <span className="text-xs font-bold text-foreground">{order.title}</span>
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    Durum: {order.status} · {order.created_at ? new Date(order.created_at).toLocaleDateString('tr-TR') : '—'}
+                    Status: {order.status} · {order.created_at ? new Date(order.created_at).toLocaleDateString('en-US') : '—'}
                   </div>
                 </div>
                 <div className="font-mono text-sm font-bold text-foreground">{order.price_sol} SOL</div>

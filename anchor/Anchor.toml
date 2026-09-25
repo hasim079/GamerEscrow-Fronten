@@ -11,7 +11,7 @@ anchor = "EjhkjCLXe6aPg1zpSi9ihJemo4JvYVacQzSi8Nbczytp"
 
 [provider]
 cluster = "devnet"
-wallet = "/home/canan/.config/solana/id.json"
+wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "cargo test"

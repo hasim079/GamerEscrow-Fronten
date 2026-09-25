@@ -89,7 +89,7 @@ export async function buildCreateListingInstruction(
   dataHash: Uint8Array | number[]
 ): Promise<{ instruction: TransactionInstruction; listingPda: PublicKey; vaultPda: PublicKey }> {
   if (!seller || !(seller instanceof PublicKey)) {
-    throw new Error(`Geçersiz seller PublicKey değeri: ${seller}`);
+    throw new Error(`Invalid seller PublicKey value: ${seller}`);
   }
 
   const [listingPda] = getListingPda(seller, dataHash);

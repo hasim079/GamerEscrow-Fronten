@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { fetchBuyerOrders, ListingRecord, updateListingStatus, createDisputeRecord } from '../../lib/supabaseClient';
+import { fetchBuyerOrders, ListingRecord, updateListingStatus } from '../../lib/supabaseClient';
 import { Transaction, PublicKey } from '@solana/web3.js';
 import { buildReleaseFundsInstruction, buildOpenDisputeInstruction } from '../../lib/anchorClient';
 import { Stepper } from '../../components/ui/Stepper';
@@ -69,7 +69,7 @@ export default function OrdersPage() {
   const handleDisputeSubmit = async (reason: string, details: string, file: File | null) => {
     if (!selectedOrder || !publicKey || !sendTransaction) return;
     try {
-      if (!selectedOrder.escrow_pda) throw new Error("Missing PDA");
+      if (!selectedOrder.escrow_pda) throw new Error("Missing escrow PDA. Cannot open dispute.");
       const listingPda = new PublicKey(selectedOrder.escrow_pda);
       const ix = await buildOpenDisputeInstruction(publicKey, listingPda);
       const tx = new Transaction().add(ix);
@@ -80,34 +80,34 @@ export default function OrdersPage() {
       await connection.confirmTransaction({ signature, blockhash: latestBlockhash.blockhash, lastValidBlockHeight: latestBlockhash.lastValidBlockHeight }, 'confirmed');
       await updateListingStatus(selectedOrder.id, 'InDispute');
 
-      let evidenceUrl = '';
-      if (file) {
-        const { supabase } = await import('../../lib/supabaseClient');
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${selectedOrder.id}_${Date.now()}.${fileExt}`;
-        const { data, error } = await supabase.storage.from('disputes').upload(fileName, file);
-        if (!error && data) {
-          const { data: { publicUrl } } = supabase.storage.from('disputes').getPublicUrl(data.path);
-          evidenceUrl = publicUrl;
-        } else {
-          console.warn('File upload failed', error);
+      // Build multipart form data for the backend API
+      const formData = new FormData();
+      formData.append('listing_id', selectedOrder.id);
+      formData.append('initiator_pubkey', publicKey.toBase58());
+      formData.append('reason', reason);
+      if (details) formData.append('details', details);
+      if (file) formData.append('file', file);
+
+      const res = await fetch('/api/create-dispute', {
+        method: 'POST',
+        body: formData,
+      });
+      const result = await res.json();
+
+      if (!result.success) {
+        // Show specific error: file upload vs DB failure
+        if (result.error?.toLowerCase().includes('upload') || result.error?.toLowerCase().includes('storage')) {
+          throw new Error(`File could not be uploaded: ${result.error}`);
         }
+        throw new Error(`Dispute could not be saved: ${result.error}`);
       }
 
-      await createDisputeRecord({
-        listing_id: selectedOrder.id,
-        initiator_pubkey: publicKey.toBase58(),
-        reason: reason,
-        details: details,
-        evidence_urls: evidenceUrl ? [evidenceUrl] : undefined,
-        status: "Open"
-      });
       const updated = { ...selectedOrder, status: 'InDispute' as const };
       setSelectedOrder(updated);
       setOrdersList((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
     } catch (err: any) {
       console.error(err);
-      alert('Failed to open dispute: ' + err.message);
+      alert(err.message || 'Failed to open dispute. Please try again.');
     }
   };
 
@@ -221,7 +221,12 @@ export default function OrdersPage() {
           {/* Left: Countdown Timer or Status */}
           <div className="rounded-2xl border border-border bg-card p-6 shadow-sm flex flex-col items-center justify-center">
             {!isCompleted && !isDisputed ? (
-              <CountdownTimer initialSeconds={2570} />
+              (() => {
+                const startedAt = selectedOrder.updated_at ? new Date(selectedOrder.updated_at).getTime() : Date.now();
+                const elapsedSec = Math.floor((Date.now() - startedAt) / 1000);
+                const remainingSec = Math.max(3600 - elapsedSec, 0); // 60 minutes escrow
+                return <CountdownTimer key={selectedOrder.id} initialSeconds={remainingSec} />;
+              })()
             ) : isCompleted ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <div className="flex size-14 items-center justify-center rounded-full bg-brand/15 text-brand mb-3">
@@ -274,7 +279,7 @@ export default function OrdersPage() {
             {/* Seller info */}
             <div className="mt-6 rounded-xl border border-border/80 bg-muted/30 px-4 py-3 text-xs text-muted-foreground flex items-center justify-between">
               <span>
-                Satıcı: <strong className="font-semibold text-foreground">
+                Seller: <strong className="font-semibold text-foreground">
                   {selectedOrder.seller_pubkey
                     ? `${selectedOrder.seller_pubkey.slice(0, 6)}…${selectedOrder.seller_pubkey.slice(-4)}`
                     : '—'}

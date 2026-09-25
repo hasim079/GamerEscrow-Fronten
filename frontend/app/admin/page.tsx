@@ -120,15 +120,15 @@ export default function AdminPage() {
 
         try {
           const winnerAddress = action === 'Refund Buyer' ? selectedDispute.buyerAddress : selectedDispute.sellerAddress;
-          if (!winnerAddress) throw new Error("Kazanan tarafın cüzdan adresi eksik (Veritabanı hatası).");
+          if (!winnerAddress) throw new Error("Winner's wallet address is missing (Database error).");
           winnerKey = new PublicKey(winnerAddress);
 
           if (!selectedDispute.vaultAddress || selectedDispute.vaultAddress.length < 32) {
-            throw new Error("Geçerli bir Escrow (Listing PDA) adresi bulunamadı. İşlem on-chain'e gönderilemez.");
+            throw new Error("No valid Escrow (Listing PDA) address found. Transaction cannot be sent on-chain.");
           }
           listingKey = new PublicKey(selectedDispute.vaultAddress);
         } catch (pubkeyErr: any) {
-          alert(`Adres doğrulama hatası: ${pubkeyErr.message}`);
+          alert(`Address verification error: ${pubkeyErr.message}`);
           setIsProcessing(false);
           return;
         }
@@ -157,7 +157,7 @@ export default function AdminPage() {
           setResolutionMessage(`Dispute resolved successfully on-chain: ${action}`);
         } catch (chainErr: any) {
           console.error('On-chain transaction error:', chainErr);
-          alert(`Solana İşlem Hatası: ${chainErr.message || 'Bilinmeyen bir hata oluştu.'}`);
+          alert(`Solana Transaction Error: ${chainErr.message || 'An unknown error occurred.'}`);
         }
       }
     } finally {

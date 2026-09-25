@@ -30,7 +30,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
         onClose();
       }
     } catch (error) {
-      console.error("Cüzdan seçilirken hata oluştu:", error);
+      console.error("Error selecting wallet:", error);
     }
   };
 

@@ -181,6 +181,29 @@ export async function createListingRecord(
 }
 
 /**
+ * Delete a listing record from Supabase (e.g. after successfully publishing a draft).
+ */
+export async function deleteListingRecord(id: string, sellerPubkey: string): Promise<boolean> {
+  try {
+    const res = await fetch('/api/delete-listing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, seller_pubkey: sellerPubkey })
+    });
+    
+    const data = await res.json();
+    if (!data.success) {
+      console.error("[Backend API] deleteListingRecord error:", data.error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[Backend API] Network/Fetch error:", err);
+    return false;
+  }
+}
+
+/**
  * Update the status of a listing (e.g. after on-chain transaction).
  */
 export async function updateListingStatus(

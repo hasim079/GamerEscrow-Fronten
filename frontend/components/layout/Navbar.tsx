@@ -52,7 +52,7 @@ export function Navbar() {
     try {
       await disconnect();
     } catch (error) {
-      console.error("Cüzdan bağlantısı kesilirken hata oluştu:", error);
+      console.error("Error disconnecting wallet:", error);
     }
   };
 

@@ -33,12 +33,12 @@ export function BuyEscrowModal({ isOpen, onClose, listing }: BuyEscrowModalProps
     setErrorMessage(null);
 
     if (!publicKey || !sendTransaction) {
-      setErrorMessage('Lütfen önce Solana cüzdanınızı bağlayın.');
+      setErrorMessage('Please connect your Solana wallet first.');
       return;
     }
 
     if (!listing.escrow_pda) {
-      setErrorMessage('Geçersiz ilan: Escrow PDA adresi bulunamadı.');
+      setErrorMessage('Invalid listing: Escrow PDA address not found.');
       return;
     }
 
@@ -84,7 +84,7 @@ export function BuyEscrowModal({ isOpen, onClose, listing }: BuyEscrowModalProps
     } catch (err: any) {
       console.error('[BuyEscrow] On-chain transfer error:', err);
       setErrorMessage(
-        err.message || 'İşlem cüzdan tarafından reddedildi veya ağda başarısız oldu.'
+        err.message || 'An error occurred while processing the transaction.'
       );
     } finally {
       setIsProcessing(false);

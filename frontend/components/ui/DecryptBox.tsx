@@ -169,7 +169,7 @@ export function DecryptBox({
                   Password
                 </span>
                 <span className="font-mono text-sm font-semibold text-brand">
-                  {showPassword ? (realPass || "N/A") : "����������������"}
+                  {showPassword ? (realPass || "N/A") : "••••••••••••••••"}
                 </span>
               </div>
               <div className="flex items-center gap-2">

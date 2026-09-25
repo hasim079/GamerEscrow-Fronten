@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Plus, Link as LinkIcon, Package, Clock, TrendingUp, Upload, CheckCircle2 } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { fetchSellerListings, ListingRecord, fetchDisputesByListing, updateDisputeSellerResponse, DisputeRecord, supabase } from '../../lib/supabaseClient';
+import { fetchSellerListings, ListingRecord, fetchDisputesByListing, updateDisputeSellerResponse, DisputeRecord, supabase, deleteListingRecord } from '../../lib/supabaseClient';
+import { decryptCredentials } from '../../lib/crypto';
 import { PublishingWizardModal } from '../../components/modals/PublishingWizardModal';
 import { SellerDisputeResponseModal } from '../../components/modals/SellerDisputeResponseModal';
 import { AlertTriangle } from 'lucide-react';
@@ -15,6 +16,7 @@ export default function SellerDashboardPage() {
   const [dbListings, setDbListings] = useState<ListingRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [publishingDraft, setPublishingDraft] = useState<ListingRecord | null>(null);
+  const [publishingCredentials, setPublishingCredentials] = useState<any>(null);
   
   // Dispute Handling States
   const [respondingListing, setRespondingListing] = useState<ListingRecord | null>(null);
@@ -38,7 +40,15 @@ export default function SellerDashboardPage() {
       alert('This draft has no encrypted credentials. Please re-create the listing with account credentials before publishing.');
       return;
     }
-    setPublishingDraft(draft);
+    
+    try {
+      const parsed = decryptCredentials(draft.encrypted_credentials, "gamer_escrow_secret_key", draft.encryption_iv);
+      setPublishingCredentials(parsed);
+      setPublishingDraft(draft);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to decrypt draft credentials. They might be corrupted.");
+    }
   };
 
   const handleRespondDisputeClick = async (listing: ListingRecord) => {
@@ -212,7 +222,7 @@ export default function SellerDashboardPage() {
       {activeTab === 'drafts' && (
         <div className="space-y-3">
           {loading ? (
-            <p className="text-sm text-muted-foreground">LOADİNG...</p>
+            <p className="text-sm text-muted-foreground">LOADING...</p>
           ) : draftListings.length === 0 ? (
             <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
               You don't have a draft listing.{' '}
@@ -387,17 +397,34 @@ export default function SellerDashboardPage() {
           )}
         </div>
       )}
-      {publishingDraft && (
+      {publishingDraft && publishingCredentials && (
         <PublishingWizardModal
           isOpen={!!publishingDraft}
-          onClose={() => setPublishingDraft(null)}
-          onSuccess={() => {
+          onClose={() => {
+            setPublishingDraft(null);
+            setPublishingCredentials(null);
+          }}
+          onSuccess={async () => {
+            if (publicKey) {
+              await deleteListingRecord(publishingDraft.id, publicKey.toBase58());
+              setDbListings(prev => prev.filter(d => d.id !== publishingDraft.id));
+            }
             setPublishedIds((prev) => [...prev, publishingDraft.id]);
             setPublishingDraft(null);
+            setPublishingCredentials(null);
+            // Optionally fetch new listings to show the newly published one in 'Active' immediately
+            if (publicKey) {
+              const list = await fetchSellerListings(publicKey.toBase58());
+              setDbListings(list || []);
+            }
           }}
           listingTitle={publishingDraft.title}
           priceSol={publishingDraft.price_sol}
           credentialsData={{
+            username: publishingCredentials.username,
+            password: publishingCredentials.password,
+            email: publishingCredentials.email,
+            securityKeys: publishingCredentials.securityKeys,
             game: publishingDraft.game,
             description: publishingDraft.description,
             rank: publishingDraft.rank,
